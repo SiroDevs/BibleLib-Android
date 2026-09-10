@@ -131,7 +131,7 @@ fun SelectionScreen(
                 AppTopBar(title = "BibleLib: Multi-Bible Reader")
             } else {
                 AppTopBar(
-                    title = "BibleLib",
+                    title = "BibleLib: Multi-Bible Reader",
                     tagline = "$selectedCount / $maxSelections bibles selected",
                     actions = {
                         IconButton(

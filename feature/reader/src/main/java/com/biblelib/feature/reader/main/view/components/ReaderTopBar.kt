@@ -78,8 +78,9 @@ fun ReaderTopBar(
                         .padding(horizontal = 5.dp)
                 ) {
                     Text(
-                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible.take(30)}",
+                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible.take(25)}",
                         style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1
                     )
                     Spacer(Modifier.width(5.dp))
                     Icon(Icons.Default.ArrowDropDown, null)
@@ -95,6 +96,7 @@ fun ReaderTopBar(
                     Spacer(Modifier.width(10.dp))
                     Text(
                         text = state.activeBook?.name ?: "",
+                        maxLines = 1,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )

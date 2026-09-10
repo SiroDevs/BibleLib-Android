@@ -117,7 +117,7 @@ fun BibleListItem(
                 )
 
                 Text(
-                    text = language,
+                    text = "$language bible".uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
