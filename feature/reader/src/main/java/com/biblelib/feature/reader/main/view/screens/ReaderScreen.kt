@@ -210,8 +210,8 @@ fun ReaderScreen(
                     hasNextChapter = hasNextChapter,
                     prevChapterLabel = prevChapterLabel,
                     nextChapterLabel = nextChapterLabel,
-                    onNavigatePrevChapter = { if (!state.isLoading) viewModel.navigateChapter(-1) },
-                    onNavigateNextChapter = { if (!state.isLoading) viewModel.navigateChapter(1) },
+                    onNavigatePrevChapter = { viewModel.navigateChapter(-1) },
+                    onNavigateNextChapter = { viewModel.navigateChapter(1) },
                 )
             }
 
@@ -249,9 +249,8 @@ fun ReaderScreen(
     if (showBibleSelector) {
         BibleSelectorSheet(
             state = state,
-            viewModel = viewModel,
             onSelect = { abbr ->
-                viewModel.selectBible(abbr)
+                viewModel.setPrimaryBible(abbr)
                 showBibleSelector = false
             },
             onOpenBibles = {

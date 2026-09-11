@@ -17,6 +17,7 @@ class DownloadController(
     private val context: Context,
     private val scope: CoroutineScope,
     private val state: MutableStateFlow<ReaderUiState>,
+    private val onBibleDownloaded: (abbr: String) -> Unit = {},
 ) {
     private val workManager = WorkManager.getInstance(context)
     private val observedAbbrs = mutableSetOf<String>()
@@ -46,6 +47,7 @@ class DownloadController(
                                 state.update {
                                     it.copy(savedBibles = bibleRepo.getbibles())
                                 }
+                                onBibleDownloaded(bible.abbreviation)
                             }
                         }
                 }

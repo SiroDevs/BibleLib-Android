@@ -1,19 +1,23 @@
 package com.biblelib.feature.bibles.view.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -21,7 +25,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -29,15 +32,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.biblelib.core.database.entities.BibleEntity
+
+private val RowShape = RoundedCornerShape(14.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,17 +66,6 @@ fun SwipeableBibleRow(
             }
             false
         },
-    )
-
-    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
-    val shimmerProgress = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer"
     )
 
     SwipeToDismissBox(
@@ -99,93 +94,83 @@ fun SwipeableBibleRow(
             }
         },
     ) {
-        val downloadProgress = progress ?: bible.downloadProgress
+        val downloadProgress = (progress ?: bible.downloadProgress).coerceIn(0f, 1f)
 
-        Column(
+        Row(
             modifier = Modifier
+                .clip(RowShape)
                 .background(MaterialTheme.colorScheme.surface)
-                .then(
-                    if (!bible.isDownloaded && !bible.downloadFailed) {
-                        Modifier.background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.secondaryContainer,
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                ),
-                                startX = (shimmerProgress.value - 0.5f).coerceIn(0f, 1f),
-                                endX = (shimmerProgress.value).coerceIn(0f, 1f)
-                            )
-                        )
-                    } else Modifier
-                )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ListItem(
-                leadingContent = {
-                    Box(
-                        modifier = Modifier
-                            .size(45.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = bible.abbreviation.uppercase().take(3),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        leadingContent?.invoke()
-                    }
-                },
-                headlineContent = { Text(bible.name, fontWeight = FontWeight.Medium) },
-                supportingContent = { Text("${bible.abbreviation.uppercase()} BIBLE") },
-                trailingContent = {
-                    if (bible.downloadFailed) {
-                        Column(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .padding(bottom = 5.dp)
-                        ) {
-                            TextButton(
-                                onClick = { onRestartDownload?.invoke() },
-                                modifier = Modifier.height(IntrinsicSize.Min)
-                            ) {
-                                Text("Restart")
-                            }
-                            TextButton(
-                                onClick = { onContinueDownload?.invoke() },
-                                modifier = Modifier.height(IntrinsicSize.Min)
-                            ) {
-                                Text("Continue")
-                            }
-                        }
-                    }
-                }
-            )
+            if (leadingContent != null) {
+                Box(Modifier.padding(end = 4.dp)) { leadingContent() }
+            }
 
-            if (bible.downloadFailed) {
-                Box(
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 12.dp)
-                ) {
-                    Text(
-                        "DOWNLOAD FAILED · ${(downloadProgress * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            } else if (!bible.isDownloaded) {
-                Text(
-                    "Downloading ... ${(downloadProgress * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            Box(Modifier.weight(1f)) {
+                BiblePill(
+                    bible = bible,
+                    progress = downloadProgress,
                 )
             }
+
+            if (bible.downloadFailed) {
+                Column(
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    TextButton(
+                        onClick = { onRestartDownload?.invoke() },
+                        modifier = Modifier.height(IntrinsicSize.Min)
+                    ) {
+                        Text("Restart")
+                    }
+                    TextButton(
+                        onClick = { onContinueDownload?.invoke() },
+                        modifier = Modifier.height(IntrinsicSize.Min)
+                    ) {
+                        Text("Continue")
+                    }
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun BoxScope.ShimmerSweep() {
+    val infiniteTransition = rememberInfiniteTransition(label = "pill_shimmer")
+    val sweep by infiniteTransition.animateFloat(
+        initialValue = -0.4f,
+        targetValue = 1.4f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "pill_shimmer",
+    )
+
+    BoxWithConstraints(Modifier.matchParentSize()) {
+        val widthPx = constraints.maxWidth.toFloat()
+        if (widthPx <= 0f) return@BoxWithConstraints
+
+        val bandPx = widthPx * 0.35f
+        val centerPx = sweep * widthPx
+
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.White.copy(alpha = 0.28f),
+                            Color.Transparent,
+                        ),
+                        start = Offset(centerPx - bandPx, 0f),
+                        end = Offset(centerPx + bandPx, 0f),
+                    )
+                )
+        )
     }
 }
 

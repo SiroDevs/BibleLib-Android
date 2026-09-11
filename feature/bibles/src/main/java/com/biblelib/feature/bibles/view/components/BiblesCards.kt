@@ -13,10 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -111,10 +109,9 @@ fun SecondaryBiblesCard(
                         isSecondary = true,
                         onDelete = { onDelete(bible) },
                         onToggleSecondary = { onRemove(abbr) },
-                        leadingContent = {
-                            if (showReorderControls) {
+                        leadingContent = if (showReorderControls) {
+                            {
                                 Column(
-                                    modifier = Modifier.padding(start = 4.dp),
                                     verticalArrangement = Arrangement.spacedBy(2.dp),
                                 ) {
                                     IconButton(
@@ -128,21 +125,8 @@ fun SecondaryBiblesCard(
                                         modifier = Modifier.size(24.dp),
                                     ) { Icon(Icons.Default.ArrowDownward, "Move down") }
                                 }
-                            } else {
-                                when {
-                                    bible.downloadFailed -> Icon(
-                                        Icons.Default.ErrorOutline,
-                                        contentDescription = "Download failed",
-                                        tint = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    !bible.isDownloaded -> CircularProgressIndicator(
-                                        modifier = Modifier.size(20.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                }
                             }
-                        },
+                        } else null,
                     )
                     if (index < secondaryBibles.lastIndex) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -180,20 +164,6 @@ fun OtherBiblesCard(
                     onToggleSecondary = if (canAddToSecondary && !atCap) {
                         { onAddToSecondary(bible.abbreviation) }
                     } else null,
-                    leadingContent = {
-                        when {
-                            bible.downloadFailed -> Icon(
-                                Icons.Default.ErrorOutline,
-                                contentDescription = "Download failed",
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            !bible.isDownloaded -> CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    },
                 )
                 if (index < bibles.lastIndex) {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

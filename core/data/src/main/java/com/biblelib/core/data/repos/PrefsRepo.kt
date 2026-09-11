@@ -39,6 +39,10 @@ class PrefsRepo @Inject constructor(
         get() = prefs.getBoolean(PrefConstants.SELECT_A_FRESH, false)
         set(v) = prefs.edit { putBoolean(PrefConstants.SELECT_A_FRESH, v) }
 
+    var hasSeenBiblesManagementTip: Boolean
+        get() = prefs.getBoolean(PrefConstants.HAS_SEEN_BIBLES_MANAGEMENT_TIP, false)
+        set(v) = prefs.edit { putBoolean(PrefConstants.HAS_SEEN_BIBLES_MANAGEMENT_TIP, v) }
+
     var lastBible: String
         get() = prefs.getString(PrefConstants.LAST_BIBLE, "") ?: ""
         set(v) = prefs.edit { putString(PrefConstants.LAST_BIBLE, v) }

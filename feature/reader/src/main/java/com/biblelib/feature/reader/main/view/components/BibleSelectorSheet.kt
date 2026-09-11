@@ -31,7 +31,6 @@ import kotlin.collections.forEach
 @Composable
 fun BibleSelectorSheet(
     state: ReaderUiState,
-    viewModel: ReaderViewModel,
     onSelect: (String) -> Unit,
     onOpenBibles: () -> Unit = {},
     onDismiss: () -> Unit,

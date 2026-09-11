@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,12 +43,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
@@ -70,24 +73,30 @@ fun ReaderTopBar(
 
     TopAppBar(
         title = {
-            Column() {
+            Column(Modifier.fillMaxWidth()) {
                 Row(
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .clickable { onBibleClick() }
                         .padding(horizontal = 5.dp)
                 ) {
                     Text(
-                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible.take(25)}",
+                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible}",
                         style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     Spacer(Modifier.width(5.dp))
                     Icon(Icons.Default.ArrowDropDown, null)
                 }
                 Row(
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .alpha(if (bookSwitchEnabled) 1f else 0.5f)
                         .clickable { if (bookSwitchEnabled) onBookClick() else onBookSwitchBlocked() }
                         .padding(horizontal = 5.dp)
@@ -95,10 +104,12 @@ fun ReaderTopBar(
                     Icon(Icons.Default.MenuBook, null, modifier = Modifier.size(25.dp))
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = state.activeBook?.name ?: "",
+                        text = state.activeChapter?.reference ?: "",
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     Spacer(Modifier.width(5.dp))
                     Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(22.dp))
