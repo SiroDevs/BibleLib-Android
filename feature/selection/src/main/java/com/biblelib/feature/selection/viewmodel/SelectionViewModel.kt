@@ -8,11 +8,10 @@ import com.biblelib.core.common.entity.Selectable
 import com.biblelib.core.common.entity.UiState
 import com.biblelib.core.data.repos.BibleRepo
 import com.biblelib.core.data.repos.PrefsRepo
-import com.biblelib.core.data.worker.SyncScheduler
-import com.biblelib.core.database.entities.BibleEntity
 import com.biblelib.core.network.dtos.BibleInfoDto
-import com.biblelib.core.network.dtos.primaryCountryName
 import com.biblelib.feature.selection.utils.GroupingMode
+import com.biblelib.feature.selection.viewmodel.controller.FirstTimeSelectionController
+import com.biblelib.feature.selection.viewmodel.controller.ReturningSelectionController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +23,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Owns the grid/selection UI state and delegates the actual "save this selection" work to
+ * one of two controllers depending on whether this is a first install or a returning user
+ * reselecting Bibles — see [FirstTimeSelectionController] and [ReturningSelectionController]
+ * for what differs between the two flows.
+ */
 @HiltViewModel
 class SelectionViewModel @Inject constructor(
     private val bibleRepo: BibleRepo,
@@ -34,10 +39,7 @@ class SelectionViewModel @Inject constructor(
     companion object {
         private const val TAG = "SelectionViewModel"
 
-        /** Task: bibles a first-time user can pick before their initial download. */
         const val FIRST_INSTALL_MAX = 5
-
-        /** Task: once bibles are already owned, how many more can be added in one go. */
         const val ADDITIONAL_BIBLES_ALLOWED = 7
     }
 
@@ -56,18 +58,11 @@ class SelectionViewModel @Inject constructor(
     private val _groupingMode = MutableStateFlow(GroupingMode.Default)
     val groupingMode = _groupingMode.asStateFlow()
 
-    /**
-     * Task: on first install the user is capped at [FIRST_INSTALL_MAX] bibles total. Once bibles
-     * are already owned (re-selection / "add more bibles" flow) that cap is lifted — they can add
-     * up to [ADDITIONAL_BIBLES_ALLOWED] more on top of what they already have.
-     */
     val isFirstInstall: Boolean
         get() = !prefsRepo.isDataSelected
 
     private val _maxSelections = MutableStateFlow(FIRST_INSTALL_MAX)
     val maxSelections: StateFlow<Int> = _maxSelections.asStateFlow()
-
-    private var pendingSelection: List<BibleInfoDto> = emptyList()
 
     val selectedCount: StateFlow<Int> =
         _bibles
@@ -87,6 +82,24 @@ class SelectionViewModel @Inject constructor(
                 false
             )
 
+    private val firstTimeSelection = FirstTimeSelectionController(
+        bibleRepo = bibleRepo,
+        prefsRepo = prefsRepo,
+        context = context,
+        scope = viewModelScope,
+        uiState = _uiState,
+        downloadProgress = _downloadProgress,
+        downloadStep = _downloadStep,
+    )
+
+    private val returningSelection = ReturningSelectionController(
+        bibleRepo = bibleRepo,
+        prefsRepo = prefsRepo,
+        context = context,
+        scope = viewModelScope,
+        uiState = _uiState,
+    )
+
     fun fetchBibles() {
         _uiState.value = UiState.Loading
 
@@ -97,7 +110,7 @@ class SelectionViewModel @Inject constructor(
                 _maxSelections.value = if (isFirstInstall) {
                     FIRST_INSTALL_MAX
                 } else {
-                    selected.size + ADDITIONAL_BIBLES_ALLOWED
+                    FIRST_INSTALL_MAX + ADDITIONAL_BIBLES_ALLOWED
                 }
 
                 _bibles.value = bibleRepo.fetchAvailableBibles().map {
@@ -143,144 +156,22 @@ class SelectionViewModel @Inject constructor(
         }
     }
 
-    fun saveSelectionAndDownload() {
-        val selected = _bibles.value
-            .filter { it.isSelected }
-            .map { it.data }
+    private fun currentSelection(): List<BibleInfoDto> =
+        _bibles.value.filter { it.isSelected }.map { it.data }
 
-        if (selected.isEmpty()) return
-        pendingSelection = selected
+    // -- First-install flow: delegates to FirstTimeSelectionController --
 
-        _uiState.value = UiState.Saving
-        _downloadProgress.value = 0f
-        _downloadStep.value = "Preparing..."
+    fun saveSelectionAndDownload() =
+        firstTimeSelection.saveSelectionAndDownload(currentSelection())
 
-        viewModelScope.launch {
-            try {
-                persistSelectionBookkeeping(selected)
-                downloadPrimaryAndQueueSecondaries(selected)
-                _uiState.value = UiState.Saved
-            } catch (e: Exception) {
-                Log.e(TAG, "saveSelection", e)
-                _uiState.value = UiState.SaveFailed(
-                    message = "Failed to download the Bible. You can continue where it left off or restart.",
-                    progress = _downloadProgress.value,
-                )
-            }
-        }
-    }
+    fun continuePrimaryDownload() = firstTimeSelection.continuePrimaryDownload()
 
-    fun continuePrimaryDownload() {
-        val selected = pendingSelection
-        if (selected.isEmpty()) return
+    fun restartPrimaryDownload() = firstTimeSelection.restartPrimaryDownload()
 
-        _uiState.value = UiState.Saving
-        _downloadStep.value = "Resuming download..."
+    // -- Returning-user reselection flow: delegates to ReturningSelectionController --
 
-        viewModelScope.launch {
-            try {
-                _downloadProgress.value = bibleRepo.getbibles()
-                    .find { it.abbreviation == selected.first().abbreviation }
-                    ?.downloadProgress ?: 0f
+    fun saveSelectionInBackground() =
+        returningSelection.saveSelectionInBackground(currentSelection())
 
-                downloadPrimaryAndQueueSecondaries(selected)
-                _uiState.value = UiState.Saved
-            } catch (e: Exception) {
-                Log.e(TAG, "continuePrimaryDownload", e)
-                _uiState.value = UiState.SaveFailed(
-                    message = "Still couldn't finish the download. You can continue or restart.",
-                    progress = _downloadProgress.value,
-                )
-            }
-        }
-    }
-
-    fun restartPrimaryDownload() {
-        val selected = pendingSelection
-        if (selected.isEmpty()) return
-
-        _uiState.value = UiState.Saving
-        _downloadProgress.value = 0f
-        _downloadStep.value = "Restarting download..."
-
-        viewModelScope.launch {
-            try {
-                bibleRepo.clearBibleContent(selected.first().abbreviation)
-                downloadPrimaryAndQueueSecondaries(selected)
-                _uiState.value = UiState.Saved
-            } catch (e: Exception) {
-                Log.e(TAG, "restartPrimaryDownload", e)
-                _uiState.value = UiState.SaveFailed(
-                    message = "Failed to download the Bible. You can continue where it left off or restart.",
-                    progress = _downloadProgress.value,
-                )
-            }
-        }
-    }
-
-    private suspend fun persistSelectionBookkeeping(selected: List<BibleInfoDto>) {
-        val primary = selected.first()
-        val newAbbrs = selected.map { it.abbreviation }.toSet()
-
-        val previouslyOwned = prefsRepo.getSelectedBibleList()
-        val removed = previouslyOwned.filter { it !in newAbbrs }
-        removed.forEach { abbr ->
-            SyncScheduler.cancelDownload(context, abbr)
-            bibleRepo.deleteBible(abbr)
-        }
-
-        prefsRepo.selectedBibles = selected.joinToString(",") { it.abbreviation }
-
-        prefsRepo.primaryBible = primary.abbreviation
-        prefsRepo.isDataSelected = true
-        prefsRepo.selectAfresh = false
-
-        prefsRepo.lastBible = primary.name
-        prefsRepo.lastBibleAbbr = primary.abbreviation
-        prefsRepo.lastBookId = ""
-        prefsRepo.lastChapterId = ""
-
-        val prunedSecondary = prefsRepo.getSecondaryBibleList()
-            .filter { it in newAbbrs && it != primary.abbreviation }
-        val secondary = prunedSecondary.ifEmpty {
-            selected.drop(1)
-                .take(PrefsRepo.DEFAULT_SECONDARY_BIBLES)
-                .map { it.abbreviation }
-        }
-        prefsRepo.setSecondaryBibleList(secondary)
-
-        bibleRepo.saveBibles(
-            selected.mapIndexed { index, dto ->
-                BibleEntity(
-                    abbreviation = dto.abbreviation,
-                    name = dto.name,
-                    description = dto.description,
-                    languageName = dto.language.name,
-                    scriptDirection = dto.language.scriptDirection,
-                    sortOrder = index,
-                    isDownloaded = false,
-                    countryName = dto.primaryCountryName(),
-                )
-            }
-        )
-    }
-
-    private suspend fun downloadPrimaryAndQueueSecondaries(selected: List<BibleInfoDto>) {
-        val primary = selected.first()
-        if (bibleRepo.getbibles().none { it.abbreviation == primary.abbreviation }) {
-            persistSelectionBookkeeping(selected)
-        }
-
-        bibleRepo.downloadBible(primary.abbreviation) { step, progress ->
-            _downloadStep.value = step
-            _downloadProgress.value = progress
-        }
-
-        prefsRepo.isPrimaryLoaded = true
-
-        SyncScheduler.scheduleSecondaryDownloads(
-            context,
-            selected.drop(1).map { it.abbreviation },
-        )
-    }
+    fun cancelReselection() = returningSelection.cancelReselection()
 }

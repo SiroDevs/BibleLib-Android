@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HelpOutline
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,14 +43,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
+import com.biblelib.core.ui.components.share.ShareHelper
 import com.biblelib.feature.reader.R
 import com.biblelib.feature.reader.main.utils.ReaderUiState
 import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
@@ -66,23 +73,30 @@ fun ReaderTopBar(
 
     TopAppBar(
         title = {
-            Column() {
+            Column(Modifier.fillMaxWidth()) {
                 Row(
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .clickable { onBibleClick() }
                         .padding(horizontal = 5.dp)
                 ) {
                     Text(
-                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible.take(30)}",
+                        text = "${state.activeBibleAbbr.uppercase().take(3)}: ${state.activeBible}",
                         style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     Spacer(Modifier.width(5.dp))
                     Icon(Icons.Default.ArrowDropDown, null)
                 }
                 Row(
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .alpha(if (bookSwitchEnabled) 1f else 0.5f)
                         .clickable { if (bookSwitchEnabled) onBookClick() else onBookSwitchBlocked() }
                         .padding(horizontal = 5.dp)
@@ -90,9 +104,12 @@ fun ReaderTopBar(
                     Icon(Icons.Default.MenuBook, null, modifier = Modifier.size(25.dp))
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = state.activeBook?.name ?: "",
+                        text = state.activeChapter?.reference ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     Spacer(Modifier.width(5.dp))
                     Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(22.dp))
@@ -171,6 +188,8 @@ fun ReaderSelectionTopBar(
     selectedCount: Int,
     viewModel: ReaderViewModel,
 ) {
+    val context = LocalContext.current
+
     TopAppBar(
         title = { Text("$selectedCount selected") },
         navigationIcon = {
@@ -187,6 +206,20 @@ fun ReaderSelectionTopBar(
                 enabled = selectedCount == 1
             ) {
                 Icon(Icons.Default.EditNote, "Notes")
+            }
+            IconButton(
+                onClick = {
+                    viewModel.buildSelectionShareText()?.let { ShareHelper.copyText(context, it) }
+                },
+            ) {
+                Icon(Icons.Default.ContentCopy, "Copy")
+            }
+            IconButton(
+                onClick = {
+                    viewModel.buildSelectionShareText()?.let { ShareHelper.shareText(context, it) }
+                },
+            ) {
+                Icon(Icons.Default.Share, "Share")
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

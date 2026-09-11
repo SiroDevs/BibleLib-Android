@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,8 +29,10 @@ fun StatusCard(
     serverStatus: ServerStatus,
     connectedClients: Int,
     readingState: CastingState,
+    isFrozen: Boolean = false,
     onStart: () -> Unit,
     onStop: () -> Unit,
+    onToggleFreeze: (() -> Unit)? = null,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -41,7 +44,8 @@ fun StatusCard(
                         ServerStatus.Stopped -> "Not casting"
                         ServerStatus.Starting -> "Starting ..."
                         is ServerStatus.Running -> "Casting" +
-                                if (connectedClients > 0) " • $connectedClients connected" else ""
+                                (if (connectedClients > 0) " • $connectedClients connected" else "") +
+                                (if (isFrozen) " • Frozen" else "")
                         is ServerStatus.Error -> "Couldn't start: ${serverStatus.message}"
                     },
                     style = MaterialTheme.typography.titleSmall,
@@ -65,6 +69,11 @@ fun StatusCard(
             }
 
             if (serverStatus is ServerStatus.Running || serverStatus is ServerStatus.Starting) {
+                if (onToggleFreeze != null && serverStatus is ServerStatus.Running) {
+                    OutlinedButton(onClick = onToggleFreeze, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (isFrozen) "Resume Presentation" else "Freeze Presentation")
+                    }
+                }
                 Button(onClick = onStop, modifier = Modifier.fillMaxWidth()) {
                     Text("Stop Casting")
                 }

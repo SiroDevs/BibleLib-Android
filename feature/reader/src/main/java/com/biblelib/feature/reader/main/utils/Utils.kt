@@ -5,6 +5,16 @@ import com.biblelib.core.database.entities.BibleEntity
 import com.biblelib.core.database.entities.BookEntity
 import com.biblelib.core.database.entities.ChapterEntity
 import com.biblelib.core.database.entities.ScriptureItemEntity
+import com.biblelib.feature.reader.main.view.components.VerseList
+
+const val SWIPE_ACTION_TRIGGER_PX = 140f
+
+/** Keys for the two sentinel items that trigger auto chapter navigation, see [VerseList]. */
+const val PREV_CHAPTER_KEY = "__prev_chapter_sentinel__"
+const val NEXT_CHAPTER_KEY = "__next_chapter_sentinel__"
+
+/** How long a chapter-edge sentinel must stay on screen before we actually navigate. */
+const val CHAPTER_TRANSITION_DELAY_MS = 550L
 
 data class NotesNavRequest(
     val bibleAbbr: String,
@@ -54,4 +64,6 @@ data class ReaderUiState(
 ) {
     val isSelectionMode: Boolean get() = selectedVerseIds.isNotEmpty()
     val isScriptureModeActive: Boolean get() = queueItems.size > 1
+    val activeBibleLanguage: String?
+        get() = savedBibles.find { it.abbreviation == activeBibleAbbr }?.languageName
 }

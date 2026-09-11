@@ -55,3 +55,9 @@
 
  # With R8 full mode generic signatures are stripped for classes that are not kept.
  -keep,allowobfuscation,allowshrinking class retrofit2.Response
+
+ # Some JVM-portable libraries (e.g. OkHttp's platform detection) reference
+ # java.lang.management classes in code paths that only run on a desktop JVM
+ # and never execute on Android, where these classes don't exist. Safe to ignore.
+ -dontwarn java.lang.management.ManagementFactory
+ -dontwarn java.lang.management.RuntimeMXBean

@@ -53,7 +53,21 @@ class ReaderViewModel @Inject constructor(
         bibleRepo, prefsRepo, annotationRepo, parallelBible, readingProgress,
         viewModelScope, _uiState,
     )
-    private val downloads = DownloadController(bibleRepo, context, viewModelScope, _uiState)
+    private val downloads = DownloadController(
+        bibleRepo, context, viewModelScope, _uiState,
+        onBibleDownloaded = { abbr ->
+            // If the bible that just finished downloading in the background is the one the
+            // reader is (trying to) show, and nothing loaded yet — e.g. the user was sent
+            // straight to the reader while their primary Bible was still fetching — retry
+            // loading its content now instead of leaving the "please wait" error showing.
+            val current = _uiState.value
+            if (abbr == current.activeBibleAbbr && current.books.isEmpty()) {
+                viewModelScope.launch {
+                    content.loadBooks(abbr, prefsRepo.lastBookId, prefsRepo.lastChapterId)
+                }
+            }
+        },
+    )
     private val annotations = AnnotationController(annotationRepo, viewModelScope, _uiState)
     private val queue = ScriptureQueueController(
         scriptureQueueRepo, prefsRepo, content, viewModelScope, _uiState,
@@ -133,14 +147,13 @@ class ReaderViewModel @Inject constructor(
 
     fun consumeRestoreVerseTarget() = content.consumeRestoreVerseTarget()
     fun navigateChapter(direction: Int) = content.navigateChapter(direction)
-    fun selectBible(abbr: String) = content.selectBible(abbr)
+    fun setPrimaryBible(abbr: String) = content.setPrimaryBible(abbr)
     fun selectBook(book: BookEntity) = content.selectBook(book)
     fun selectChapter(chapter: ChapterEntity, scrollTarget: ScrollTarget? = null) =
         content.selectChapter(chapter, scrollTarget)
 
     fun setMultiBibleReaderEnabled(enabled: Boolean) = content.setMultiBibleReaderEnabled(enabled)
 
-    // --- Scripture queue ---
     fun jumpToQueueItem(item: ScriptureItemEntity) = queue.jumpToQueueItem(item)
     fun dismissScriptureQueue() = queue.dismissScriptureQueue()
 
@@ -163,6 +176,8 @@ class ReaderViewModel @Inject constructor(
     fun confirmBookmarkOnly() = annotations.confirmBookmarkOnly()
     fun confirmBookmarkWithNotes(): NotesNavRequest? = annotations.confirmBookmarkWithNotes()
     fun refreshNotedVerses() = annotations.refreshNotedVerses()
+    fun buildSelectionShareText(): String? = annotations.buildSelectionShareText()
+    fun buildActiveChapterShareText(): String? = annotations.buildActiveChapterShareText()
 
     override fun onCleared() {
         castingRepo.publishIdle()

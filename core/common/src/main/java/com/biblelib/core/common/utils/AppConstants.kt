@@ -32,6 +32,7 @@ object PrefConstants {
     const val SELECT_A_FRESH = "selectAfresh"
     const val INSTALL_DATE = "install_date"
     const val THEME_MODE = "themeMode"
+    const val HAS_SEEN_BIBLES_MANAGEMENT_TIP = "hasSeenBiblesManagementTip"
 
     const val DONATION_DONE_AT = "donation_done_at"
     const val DONATION_METHOD = "donation_method"

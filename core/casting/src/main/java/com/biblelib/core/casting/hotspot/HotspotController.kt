@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.wifi.SoftApConfiguration
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import kotlin.random.Random
 
 data class HotspotInfo(
@@ -21,29 +23,55 @@ class HotspotController(context: Context) {
 
     private val appContext = context.applicationContext
     private val wifiManager = appContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private var reservation: WifiManager.LocalOnlyHotspotReservation? = null
+    private var pendingRetry: Runnable? = null
+
+    // Bumped on every start()/stop() so a retry scheduled by a stale attempt
+    // never fires after the caller has moved on.
+    private var requestGeneration = 0
 
     val isActive: Boolean get() = reservation != null
 
+    /**
+     * LocalOnlyHotspot commonly fails on the very first call right after Wi-Fi
+     * state changes (radio still settling, previous reservation still tearing
+     * down, etc.), so a failed attempt is retried automatically before it's
+     * reported back as an error.
+     */
     fun start(onResult: (HotspotOutcome) -> Unit) {
         stop()
+        val generation = ++requestGeneration
+        attemptStart(generation, attempt = 1, onResult)
+    }
 
+    fun stop() {
+        requestGeneration++
+        pendingRetry?.let { mainHandler.removeCallbacks(it) }
+        pendingRetry = null
+        reservation?.close()
+        reservation = null
+    }
+
+    private fun attemptStart(generation: Int, attempt: Int, onResult: (HotspotOutcome) -> Unit) {
         val fallbackSsid = generateSsid()
 
         val callback = object : WifiManager.LocalOnlyHotspotCallback() {
             override fun onStarted(res: WifiManager.LocalOnlyHotspotReservation) {
+                if (generation != requestGeneration) return
                 reservation = res
                 onResult(HotspotOutcome.Success(resolveInfo(res, fallbackSsid)))
             }
 
             override fun onStopped() {
-                reservation = null
+                if (generation == requestGeneration) reservation = null
             }
 
             override fun onFailed(reason: Int) {
+                if (generation != requestGeneration) return
                 reservation = null
-                onResult(HotspotOutcome.Failure(failureMessage(reason)))
+                retryOrFail(generation, attempt, onResult) { failureMessage(reason) }
             }
         }
 
@@ -51,13 +79,25 @@ class HotspotController(context: Context) {
             @Suppress("DEPRECATION")
             wifiManager.startLocalOnlyHotspot(callback, null)
         } catch (e: Exception) {
-            onResult(HotspotOutcome.Failure(e.message ?: "Couldn't start the hotspot"))
+            retryOrFail(generation, attempt, onResult) { e.message ?: "Couldn't start the hotspot" }
         }
     }
 
-    fun stop() {
-        reservation?.close()
-        reservation = null
+    private fun retryOrFail(
+        generation: Int,
+        attempt: Int,
+        onResult: (HotspotOutcome) -> Unit,
+        message: () -> String,
+    ) {
+        if (attempt >= MAX_ATTEMPTS) {
+            onResult(HotspotOutcome.Failure(message()))
+            return
+        }
+        val retry = Runnable {
+            if (generation == requestGeneration) attemptStart(generation, attempt + 1, onResult)
+        }
+        pendingRetry = retry
+        mainHandler.postDelayed(retry, RETRY_DELAY_MS)
     }
 
     private fun generateSsid(): String = "BibleLib Casting-${Random.nextInt(1000, 9999)}"
@@ -99,5 +139,10 @@ class HotspotController(context: Context) {
         WifiManager.LocalOnlyHotspotCallback.ERROR_TETHERING_DISALLOWED ->
             "Hotspot use is disabled on this device by policy"
         else -> "The hotspot couldn't be started (code $reason)"
+    }
+
+    private companion object {
+        const val MAX_ATTEMPTS = 3
+        const val RETRY_DELAY_MS = 600L
     }
 }

@@ -13,6 +13,13 @@ class CastingRepo @Inject constructor() {
     private val _readingState = MutableStateFlow<CastingState>(CastingState.Idle)
     val readingState: StateFlow<CastingState> = _readingState.asStateFlow()
 
+    /** What the cast device actually renders. Equal to [readingState] unless frozen. */
+    private val _broadcastState = MutableStateFlow<CastingState>(CastingState.Idle)
+    val broadcastState: StateFlow<CastingState> = _broadcastState.asStateFlow()
+
+    private val _isFrozen = MutableStateFlow(false)
+    val isFrozen: StateFlow<Boolean> = _isFrozen.asStateFlow()
+
     private val _serverStatus = MutableStateFlow<ServerStatus>(ServerStatus.Stopped)
     val serverStatus: StateFlow<ServerStatus> = _serverStatus.asStateFlow()
 
@@ -47,6 +54,7 @@ class CastingRepo @Inject constructor() {
             multiBibleEnabled = multiBibleEnabled,
             secondaryBibleNames = secondaryBibleNames,
         )
+        pushToBroadcast()
     }
 
     /** Called as the reader scrolls to a new verse within the current chapter. */
@@ -58,11 +66,33 @@ class CastingRepo @Inject constructor() {
                 _readingState.value = current.copy(currentIndex = safeIndex)
             }
         }
+        pushToBroadcast()
     }
 
     /** Called when the reader screen is closed — falls back to the waiting page. */
     fun publishIdle() {
         _readingState.value = CastingState.Idle
+        pushToBroadcast()
+    }
+
+    /**
+     * Freezes (or resumes) what's sent to the cast device. While frozen, the app can
+     * keep navigating freely — the last broadcast frame stays on screen until resumed,
+     * at which point the device immediately catches up to the live state.
+     */
+    fun setFrozen(frozen: Boolean) {
+        _isFrozen.value = frozen
+        if (!frozen) pushToBroadcast()
+    }
+
+    fun toggleFrozen() {
+        setFrozen(!_isFrozen.value)
+    }
+
+    private fun pushToBroadcast() {
+        if (!_isFrozen.value) {
+            _broadcastState.value = _readingState.value
+        }
     }
 
     fun setServerStatus(status: ServerStatus) {

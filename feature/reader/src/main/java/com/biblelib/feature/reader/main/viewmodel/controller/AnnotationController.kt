@@ -149,6 +149,76 @@ class AnnotationController(
         }
     }
 
+    /** Formatted text for the currently selected verse(s) — used by both Share and Copy in
+     *  [com.biblelib.feature.reader.main.view.components.ReaderSelectionTopBar]. */
+    fun buildSelectionShareText(): String? {
+        val current = state.value
+        if (current.selectedVerseIds.isEmpty()) return null
+        val selected = current.verses
+            .filter { it.verseId in current.selectedVerseIds }
+            .sortedBy { it.number }
+        if (selected.isEmpty()) return null
+
+        val reference = "${referencePrefix(current)}${formatVerseRange(selected.map { it.number })}"
+        val body = selected.joinToString("\n") { "${it.number} ${it.text}" }
+        return buildShareText(reference, body, current)
+    }
+
+    /** Formatted text for the whole active chapter — the fallback used when a screenshot is
+     *  detected while no verse is currently selected. */
+    fun buildActiveChapterShareText(): String? {
+        val current = state.value
+        if (current.verses.isEmpty()) return null
+
+        val reference = referencePrefix(current).trimEnd(':', ' ')
+        val body = current.verses
+            .sortedBy { it.number }
+            .joinToString("\n") { "${it.number} ${it.text}" }
+        return buildShareText(reference, body, current)
+    }
+
+    private fun referencePrefix(current: ReaderUiState): String {
+        val bookName = current.activeBook?.name ?: current.verses.firstOrNull()?.bookId ?: ""
+        val chapterNumber = current.activeChapter?.number
+        return if (chapterNumber.isNullOrBlank()) "$bookName " else "$bookName $chapterNumber:"
+    }
+
+    private fun buildShareText(reference: String, body: String, current: ReaderUiState): String {
+        val footnote = buildString {
+            append(current.activeBible)
+            val language = current.activeBibleLanguage
+            if (!language.isNullOrBlank()) append(" ($language)")
+        }
+        return buildString {
+            append(reference)
+            append("\n\n")
+            append(body)
+            append("\n\n— ")
+            append(footnote)
+        }
+    }
+
+    /** Collapses a list of verse numbers into a compact range string, e.g. [16,17,18,20]
+     *  becomes "16-18, 20". */
+    private fun formatVerseRange(numbers: List<Int>): String {
+        if (numbers.isEmpty()) return ""
+        val sorted = numbers.sorted()
+        val parts = mutableListOf<String>()
+        var start = sorted.first()
+        var prev = sorted.first()
+        for (n in sorted.drop(1)) {
+            if (n == prev + 1) {
+                prev = n
+                continue
+            }
+            parts += if (start == prev) "$start" else "$start-$prev"
+            start = n
+            prev = n
+        }
+        parts += if (start == prev) "$start" else "$start-$prev"
+        return parts.joinToString(", ")
+    }
+
     private fun buildNotesNavRequest(verse: VerseDisplay): NotesNavRequest {
         val current = state.value
         val bookName = current.activeBook?.name ?: verse.bookId

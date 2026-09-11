@@ -9,7 +9,6 @@ import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.worker.SyncScheduler
 import com.biblelib.core.data.worker.SyncWorker
 import com.biblelib.core.database.entities.BibleEntity
-import com.biblelib.core.ui.viewmodel.MainViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +27,8 @@ data class BiblesUiState(
     val isLoading: Boolean = true,
     val multiBibleEnabled: Boolean = false,
     val secondaryBibles: List<String> = emptyList(),
+    val showManagementInfo: Boolean = false,
+    val showFirstOpenPrompt: Boolean = false,
 )
 
 @HiltViewModel
@@ -67,6 +68,7 @@ class BiblesViewModel @Inject constructor(
                     isLoading = false,
                     multiBibleEnabled = prefsRepo.multiBibleReaderEnabled,
                     secondaryBibles = secondary,
+                    showFirstOpenPrompt = !prefsRepo.hasSeenBiblesManagementTip,
                 )
             }
             observeDownloads(bibles)
@@ -125,11 +127,15 @@ class BiblesViewModel @Inject constructor(
     fun dismissPrimaryPicker() = _uiState.update { it.copy(showPrimaryPicker = false) }
 
     fun setPrimaryBible(abbr: String) {
+        val newName = _uiState.value.bibles.find { it.abbreviation == abbr }?.name
+            ?: _uiState.value.primaryAbbr
+
         val bible = _uiState.value.bibles.find { it.abbreviation == abbr } ?: return
         if (!bible.isDownloaded) return
 
         prefsRepo.primaryBible = abbr
         prefsRepo.lastBibleAbbr = abbr
+        prefsRepo.lastBible = newName
         prefsRepo.lastBookId = ""
         prefsRepo.lastChapterId = ""
         val updatedSecondary = prefsRepo.getSecondaryBibleList() - abbr
@@ -162,11 +168,8 @@ class BiblesViewModel @Inject constructor(
         }
     }
 
-    fun requestReselection(mainViewModel: MainViewModel) {
-        viewModelScope.launch {
-            prefsRepo.selectAfresh = true
-            mainViewModel.reset()
-        }
+    fun requestReselection() {
+        prefsRepo.selectAfresh = true
     }
 
     fun setMultiBibleEnabled(enabled: Boolean) {
@@ -195,5 +198,18 @@ class BiblesViewModel @Inject constructor(
         list.add(newIdx, item)
         _uiState.update { it.copy(secondaryBibles = list) }
         prefsRepo.setSecondaryBibleList(list)
+    }
+
+    fun openManagementInfo() = _uiState.update { it.copy(showManagementInfo = true) }
+    fun dismissManagementInfo() = _uiState.update { it.copy(showManagementInfo = false) }
+
+    fun dismissFirstOpenPrompt(showInfoNext: Boolean) {
+        prefsRepo.hasSeenBiblesManagementTip = true
+        _uiState.update {
+            it.copy(
+                showFirstOpenPrompt = false,
+                showManagementInfo = showInfoNext,
+            )
+        }
     }
 }

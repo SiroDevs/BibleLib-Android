@@ -49,6 +49,7 @@ fun CastingScreen(
     val readingState by viewModel.readingState.collectAsState()
     val connectedClients by viewModel.connectedClients.collectAsState()
     val hotspotStatus by viewModel.hotspotStatus.collectAsState()
+    val isFrozen by viewModel.isFrozen.collectAsState()
     val wifiConnected by viewModel.wifiConnected.collectAsState()
     val hasExternalHotspot by viewModel.hasExternalHotspot.collectAsState()
     val context = LocalContext.current
@@ -150,8 +151,10 @@ fun CastingScreen(
                 serverStatus = serverStatus,
                 connectedClients = connectedClients,
                 readingState = readingState,
+                isFrozen = isFrozen,
                 onStart = ::requestStart,
                 onStop = viewModel::stopCasting,
+                onToggleFreeze = viewModel::toggleFreeze,
             )
 
             if (isCasting) {

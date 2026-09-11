@@ -63,8 +63,8 @@ class CastingHttpServer(
                 webSocket("/ws") {
                     repo.onClientConnected()
                     try {
-                        send(Frame.Text(json.encodeToString(repo.readingState.value)))
-                        repo.readingState
+                        send(Frame.Text(json.encodeToString(repo.broadcastState.value)))
+                        repo.broadcastState
                             .collect { state: CastingState ->
                                 send(Frame.Text(json.encodeToString(state)))
                             }

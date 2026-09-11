@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -32,6 +33,8 @@ import com.biblelib.core.design_system.customization.AppFontFamilies
 import com.biblelib.core.design_system.customization.AppReaderBackgrounds
 import com.biblelib.core.ui.components.indicators.ErrorState
 import com.biblelib.core.ui.components.indicators.VerseShimmer
+import com.biblelib.core.ui.components.share.ScreenshotReminderDialog
+import com.biblelib.core.ui.components.share.ShareHelper
 import com.biblelib.feature.reader.main.view.components.BibleSelectorSheet
 import com.biblelib.feature.reader.main.view.components.BookDrawer
 import com.biblelib.feature.reader.main.view.components.BookmarkOptionsDialog
@@ -74,6 +77,7 @@ fun ReaderScreen(
     }
 
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var showBookDrawer by remember { mutableStateOf(false) }
     var showChapterSheet by remember { mutableStateOf(false) }
     var showBibleSelector by remember { mutableStateOf(false) }
@@ -85,16 +89,12 @@ fun ReaderScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Whether there's an adjacent chapter to navigate to — shared by the bottom bar, the FAB,
-    // and the auto-scroll-to-next/prev-chapter behaviour in VerseList.
     val activeChapterIndex = state.chapters.indexOfFirst { it.id == state.activeChapter?.id }
     val hasPrevChapter = activeChapterIndex > 0
     val hasNextChapter = activeChapterIndex in 0 until state.chapters.size - 1
     val prevChapterLabel = state.chapters.getOrNull(activeChapterIndex - 1)?.reference ?: "Previous chapter"
     val nextChapterLabel = state.chapters.getOrNull(activeChapterIndex + 1)?.reference ?: "Next chapter"
 
-    // The LazyColumn gains a leading sentinel item whenever there's a previous chapter, which
-    // shifts every "real" verse index in the list by one.
     val itemIndexOffset = if (hasPrevChapter) 1 else 0
 
     LaunchedEffect(listState, state.verses, itemIndexOffset) {
@@ -210,8 +210,8 @@ fun ReaderScreen(
                     hasNextChapter = hasNextChapter,
                     prevChapterLabel = prevChapterLabel,
                     nextChapterLabel = nextChapterLabel,
-                    onNavigatePrevChapter = { if (!state.isLoading) viewModel.navigateChapter(-1) },
-                    onNavigateNextChapter = { if (!state.isLoading) viewModel.navigateChapter(1) },
+                    onNavigatePrevChapter = { viewModel.navigateChapter(-1) },
+                    onNavigateNextChapter = { viewModel.navigateChapter(1) },
                 )
             }
 
@@ -249,9 +249,8 @@ fun ReaderScreen(
     if (showBibleSelector) {
         BibleSelectorSheet(
             state = state,
-            viewModel = viewModel,
             onSelect = { abbr ->
-                viewModel.selectBible(abbr)
+                viewModel.setPrimaryBible(abbr)
                 showBibleSelector = false
             },
             onOpenBibles = {
@@ -284,6 +283,19 @@ fun ReaderScreen(
             themeRepo = themeRepo,
             viewModel = viewModel,
             onDismiss = { showQuickSettings = false },
+        )
+    }
+
+    if (!state.isLoading && state.error == null) {
+        ScreenshotReminderDialog(
+            onShareClick = {
+                val text = if (state.isSelectionMode) {
+                    viewModel.buildSelectionShareText()
+                } else {
+                    viewModel.buildActiveChapterShareText()
+                }
+                text?.let { ShareHelper.shareText(context, it) }
+            },
         )
     }
 }

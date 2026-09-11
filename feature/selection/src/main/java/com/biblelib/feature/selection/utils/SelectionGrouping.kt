@@ -31,6 +31,22 @@ sealed interface GridEntry {
 private val PRIORITY_LANGUAGES = listOf("English", "French")
 private const val PRIORITY_COUNTRY = "Kenya"
 
+private val REGION_PRIORITY = listOf(
+    RegionMapper.EUROPE,
+    RegionMapper.AFRICA,
+    RegionMapper.ASIA,
+    RegionMapper.NORTH_AMERICA,
+    RegionMapper.SOUTH_AMERICA,
+    RegionMapper.OCEANIA,
+    RegionMapper.ANTARCTICA,
+    // Unspecified handled separately to always be last
+)
+
+private fun regionPriority(region: String): Int = when {
+    region == RegionMapper.UNSPECIFIED -> Int.MAX_VALUE
+    else -> REGION_PRIORITY.indexOf(region).let { if (it == -1) REGION_PRIORITY.size else it }
+}
+
 fun buildGridEntries(
     bibles: List<Selectable<BibleInfoDto>>,
     mode: GroupingMode,
@@ -52,7 +68,12 @@ fun buildGridEntries(
         defaultExpanded = defaultExpanded,
     )
 
-    GroupingMode.REGIONS -> buildRegionEntries(bibles, expandedGroups, countryFilters, defaultExpanded)
+    GroupingMode.REGIONS -> buildRegionEntries(
+        bibles,
+        expandedGroups,
+        countryFilters,
+        defaultExpanded
+    )
 }
 
 private fun languagePriority(language: String): Int {
@@ -90,7 +111,11 @@ private fun buildLanguageEntries(
             if (isExpanded) {
                 addAll(
                     items.map {
-                        GridEntry.Item("$key:${it.data.abbreviation}", it, soloInGroup = items.size == 1)
+                        GridEntry.Item(
+                            "$key:${it.data.abbreviation}",
+                            it,
+                            soloInGroup = items.size == 1
+                        )
                     }
                 )
             }
@@ -144,7 +169,11 @@ private fun buildCountryEntries(
             if (isExpanded) {
                 addAll(
                     items.map {
-                        GridEntry.Item("$key:${it.data.abbreviation}", it, soloInGroup = items.size == 1)
+                        GridEntry.Item(
+                            "$key:${it.data.abbreviation}",
+                            it,
+                            soloInGroup = items.size == 1
+                        )
                     }
                 )
             }
@@ -180,7 +209,7 @@ private fun buildRegionEntries(
     }
 
     val orderedRegions = byRegion.keys.sortedWith(
-        compareBy({ it == RegionMapper.UNSPECIFIED }, { it.lowercase() })
+        compareBy({ regionPriority(it) }, { it.lowercase() })
     )
 
     return orderedRegions.flatMap { continent ->
@@ -205,7 +234,14 @@ private fun buildRegionEntries(
                     ?.takeIf { it == ALL_FILTER || bucket.byCountry.containsKey(it) }
                     ?: ALL_FILTER
 
-                add(GridEntry.CountryFilterStrip("$continentKey:filter", continentKey, options, selected))
+                add(
+                    GridEntry.CountryFilterStrip(
+                        "$continentKey:filter",
+                        continentKey,
+                        options,
+                        selected
+                    )
+                )
 
                 val filteredItems = if (selected == ALL_FILTER) {
                     bucket.items
@@ -216,7 +252,11 @@ private fun buildRegionEntries(
 
                 addAll(
                     filteredItems.map {
-                        GridEntry.Item("$continentKey:${it.data.abbreviation}", it, soloInGroup = solo)
+                        GridEntry.Item(
+                            "$continentKey:${it.data.abbreviation}",
+                            it,
+                            soloInGroup = solo
+                        )
                     }
                 )
             }

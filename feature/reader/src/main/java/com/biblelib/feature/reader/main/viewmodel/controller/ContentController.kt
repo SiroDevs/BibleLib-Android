@@ -158,7 +158,7 @@ class ContentController(
         selectChapter(next)
     }
 
-    fun selectBible(abbr: String) {
+    fun setPrimaryBible(abbr: String) {
         val chapter = state.value.activeChapter ?: return
         val newName = state.value.savedBibles.find { it.abbreviation == abbr }?.name
             ?: state.value.activeBible
