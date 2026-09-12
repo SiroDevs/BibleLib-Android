@@ -14,8 +14,8 @@ import com.biblelib.core.ui.components.indicators.VerseShimmer
 import com.biblelib.feature.reader.main.utils.ReaderUiState
 import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
 import androidx.navigation.NavController
-import com.biblelib.feature.reader.main.view.components.ReaderFab
-import com.biblelib.feature.reader.main.view.components.VerseList
+import com.biblelib.feature.reader.main.view.components.actions.ReaderFab
+import com.biblelib.feature.reader.main.view.components.verses.VerseList
 
 @Composable
 fun ReaderContent(

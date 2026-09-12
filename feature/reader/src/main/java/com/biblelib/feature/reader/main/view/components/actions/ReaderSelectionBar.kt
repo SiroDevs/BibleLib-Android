@@ -1,4 +1,4 @@
-package com.biblelib.feature.reader.main.view.components
+package com.biblelib.feature.reader.main.view.components.actions
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark

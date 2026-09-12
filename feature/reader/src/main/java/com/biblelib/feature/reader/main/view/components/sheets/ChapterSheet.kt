@@ -1,4 +1,4 @@
-package com.biblelib.feature.reader.main.view.components
+package com.biblelib.feature.reader.main.view.components.sheets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

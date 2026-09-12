@@ -1,4 +1,4 @@
-package com.biblelib.feature.reader.main.view.components
+package com.biblelib.feature.reader.main.view.components.verses
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,6 +22,7 @@ import com.biblelib.feature.reader.main.utils.CHAPTER_TRANSITION_DELAY_MS
 import com.biblelib.feature.reader.main.utils.NEXT_CHAPTER_KEY
 import com.biblelib.feature.reader.main.utils.PREV_CHAPTER_KEY
 import com.biblelib.feature.reader.main.utils.ReaderUiState
+import com.biblelib.feature.reader.main.view.components.ChapterTransition
 import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -101,7 +102,7 @@ fun VerseList(
     ) {
         if (hasPrevChapter) {
             item(key = PREV_CHAPTER_KEY) {
-                ChapterTransitionIndicator(
+                ChapterTransition(
                     label = prevChapterLabel,
                     icon = Icons.Filled.KeyboardArrowUp,
                     isTransitioning = isTransitioningPrev,
@@ -135,7 +136,7 @@ fun VerseList(
 
         if (hasNextChapter) {
             item(key = NEXT_CHAPTER_KEY) {
-                ChapterTransitionIndicator(
+                ChapterTransition(
                     label = nextChapterLabel,
                     icon = Icons.Filled.KeyboardArrowDown,
                     isTransitioning = isTransitioningNext,

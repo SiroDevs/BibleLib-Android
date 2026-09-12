@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ChapterTransitionIndicator(
+fun ChapterTransition(
     label: String,
     icon: ImageVector,
     isTransitioning: Boolean,
