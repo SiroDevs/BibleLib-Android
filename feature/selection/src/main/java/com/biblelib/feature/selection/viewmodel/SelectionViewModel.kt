@@ -23,12 +23,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Owns the grid/selection UI state and delegates the actual "save this selection" work to
- * one of two controllers depending on whether this is a first install or a returning user
- * reselecting Bibles — see [FirstTimeSelectionController] and [ReturningSelectionController]
- * for what differs between the two flows.
- */
 @HiltViewModel
 class SelectionViewModel @Inject constructor(
     private val bibleRepo: BibleRepo,
@@ -39,8 +33,8 @@ class SelectionViewModel @Inject constructor(
     companion object {
         private const val TAG = "SelectionViewModel"
 
-        const val FIRST_INSTALL_MAX = 5
-        const val ADDITIONAL_BIBLES_ALLOWED = 7
+        const val FIRST_INSTALL_MAX = 7
+        const val ADDITIONAL_BIBLES_ALLOWED = 5
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)

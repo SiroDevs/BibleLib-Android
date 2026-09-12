@@ -17,8 +17,8 @@ import com.biblelib.feature.casting.view.screen.CastingScreen
 import com.biblelib.feature.casting.viewmodel.CastingViewModel
 import com.biblelib.feature.history.view.HistoryScreen
 import com.biblelib.feature.history.viewmodel.HistoryViewModel
-import com.biblelib.feature.reader.main.view.screens.ReaderScreen
-import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
+import com.biblelib.feature.reader.home.view.screens.ReaderScreen
+import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import com.biblelib.feature.reader.notes.view.NotesScreen
 import com.biblelib.feature.reader.notes.viewmodel.NotesViewModel
 import com.biblelib.feature.selection.view.screen.SelectionScreen
