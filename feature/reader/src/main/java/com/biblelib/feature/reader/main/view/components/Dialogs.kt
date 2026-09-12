@@ -31,22 +31,19 @@ import com.biblelib.core.data.repos.ThemeMode
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.feature.reader.main.utils.ReaderUiState
 import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
+import androidx.core.graphics.toColorInt
 
 @Composable
-fun HighlightColorPickerDialog(
-    colors: List<String>,
-    onColorChosen: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun HighlightColorPickerDialog(viewModel: ReaderViewModel) {
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = viewModel::dismissColorPicker,
         title = { Text("Choose a highlight color") },
         text = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                colors.forEach { hex ->
-                    val color = runCatching { Color(android.graphics.Color.parseColor(hex)) }
+                ReaderViewModel.HIGHLIGHT_COLORS.forEach { hex ->
+                    val color = runCatching { Color(hex.toColorInt()) }
                         .getOrDefault(Color.Gray)
                     Column(
                         modifier = Modifier
@@ -54,34 +51,31 @@ fun HighlightColorPickerDialog(
                             .clip(CircleShape)
                             .background(color)
                             .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                            .clickable { onColorChosen(hex) },
+                            .clickable { viewModel.chooseHighlightColor(hex) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {}
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = viewModel::dismissColorPicker) { Text("Cancel") }
         },
     )
 }
 
-/** Once a color has been chosen, ask whether to just bookmark, or bookmark + add a note. */
 @Composable
-fun BookmarkOptionsDialog(
-    onBookmarkOnly: () -> Unit,
-    onBookmarkWithNotes: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun BookmarkOptionsDialog(viewModel: ReaderViewModel) {
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = viewModel::cancelPendingHighlight,
         title = { Text("Highlight applied") },
         text = { Text("Would you like to just bookmark these verses, or also add a note?") },
         confirmButton = {
-            TextButton(onClick = onBookmarkWithNotes) { Text("Bookmark with notes") }
+            TextButton(onClick = { viewModel.confirmBookmarkWithNotes() }) {
+                Text("Bookmark with notes")
+            }
         },
         dismissButton = {
-            TextButton(onClick = onBookmarkOnly) { Text("Bookmark only") }
+            TextButton(onClick = viewModel::confirmBookmarkOnly) { Text("Bookmark only") }
         },
     )
 }

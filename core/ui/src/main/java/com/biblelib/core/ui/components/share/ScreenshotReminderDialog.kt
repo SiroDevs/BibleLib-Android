@@ -24,16 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import com.biblelib.core.data.notifications.MediaAccessPermission
 
-/** Tracks whether we've already asked for media read access this app session, so we
- *  don't re-prompt every time a new screen with [ScreenshotReminderDialog] is opened. */
 private object MediaPermissionSessionState {
     var askedThisSession = false
 }
 
-/**
- * Watches the media store for newly saved screenshots while composed, and nudges the
- * user toward the in-app share flow (select a verse, then Share or Copy) instead.
- */
 @Composable
 fun ScreenshotReminderDialog(onShareClick: () -> Unit) {
     val context = LocalContext.current
@@ -41,10 +35,15 @@ fun ScreenshotReminderDialog(onShareClick: () -> Unit) {
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* Granted or denied - either way, the observer below picks it up on the next change. */ }
+    ) {
+        /* Granted or denied - either way, the observer below picks it up on the next change. */
+    }
 
     LaunchedEffect(Unit) {
-        if (!MediaPermissionSessionState.askedThisSession && !MediaAccessPermission.isGranted(context)) {
+        if (!MediaPermissionSessionState.askedThisSession && !MediaAccessPermission.isGranted(
+                context
+            )
+        ) {
             MediaPermissionSessionState.askedThisSession = true
             permissionLauncher.launch(MediaAccessPermission.permissionString())
         }

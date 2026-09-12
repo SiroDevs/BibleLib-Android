@@ -1,8 +1,5 @@
 package com.biblelib.feature.reader.main.view.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -29,10 +25,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.ThemeRepo
-import com.biblelib.core.design_system.customization.AppFontFamilies
-import com.biblelib.core.design_system.customization.AppReaderBackgrounds
-import com.biblelib.core.ui.components.indicators.ErrorState
-import com.biblelib.core.ui.components.indicators.VerseShimmer
 import com.biblelib.core.ui.components.share.ScreenshotReminderDialog
 import com.biblelib.core.ui.components.share.ShareHelper
 import com.biblelib.feature.reader.main.view.components.BibleSelectorSheet
@@ -42,17 +34,14 @@ import com.biblelib.feature.reader.main.view.components.ChapterSheet
 import com.biblelib.feature.reader.main.view.components.HighlightColorPickerDialog
 import com.biblelib.feature.reader.main.view.components.QuickSettingsDialog
 import com.biblelib.feature.reader.main.view.components.ReaderBottomBar
-import com.biblelib.feature.reader.main.view.components.ReaderFab
-import com.biblelib.feature.reader.main.view.components.ReaderSelectionTopBar
 import com.biblelib.feature.reader.main.view.components.ReaderTopBar
-import com.biblelib.feature.reader.main.view.components.ScriptureQueue
-import com.biblelib.feature.reader.main.view.components.VerseList
 import com.biblelib.feature.reader.main.viewmodel.ReaderViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun ReaderScreen(
     navController: NavController,
@@ -84,17 +73,16 @@ fun ReaderScreen(
     var showQuickSettings by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
-    val resolvedFontFamily = AppFontFamilies.byId(state.fontFamilyId).family
-    val resolvedBackground = AppReaderBackgrounds.byId(state.readerBackgroundId)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     val activeChapterIndex = state.chapters.indexOfFirst { it.id == state.activeChapter?.id }
     val hasPrevChapter = activeChapterIndex > 0
     val hasNextChapter = activeChapterIndex in 0 until state.chapters.size - 1
-    val prevChapterLabel = state.chapters.getOrNull(activeChapterIndex - 1)?.reference ?: "Previous chapter"
-    val nextChapterLabel = state.chapters.getOrNull(activeChapterIndex + 1)?.reference ?: "Next chapter"
-
+    val prevChapterLabel =
+        state.chapters.getOrNull(activeChapterIndex - 1)?.reference ?: "Previous chapter"
+    val nextChapterLabel =
+        state.chapters.getOrNull(activeChapterIndex + 1)?.reference ?: "Next chapter"
     val itemIndexOffset = if (hasPrevChapter) 1 else 0
 
     LaunchedEffect(listState, state.verses, itemIndexOffset) {
@@ -137,91 +125,53 @@ fun ReaderScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            if (state.isSelectionMode) {
-                ReaderSelectionTopBar(
-                    selectedCount = state.selectedVerseIds.size,
-                    viewModel = viewModel,
-                )
-            } else {
-                ReaderTopBar(
-                    navController = navController,
-                    state = state,
-                    onBibleClick = { showBibleSelector = true },
-                    onBookClick = { showBookDrawer = true },
-                    bookSwitchEnabled = !state.isScriptureModeActive,
-                    onBookSwitchBlocked = {
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(
-                                "Finish or dismiss the scripture list to switch books"
-                            )
-                        }
-                    },
-                )
-            }
-        },
-        bottomBar = {
-            if (state.isScriptureModeActive) {
-                ScriptureQueue(
-                    state = state,
-                    viewModel = viewModel,
-                    onQuickSettings = { showQuickSettings = true },
-                )
-            } else {
-                ReaderBottomBar(
-                    navController = navController,
-                    viewModel = viewModel,
-                    hasPrev = hasPrevChapter,
-                    hasNext = hasNextChapter,
-                    chapterRef = state.activeChapter?.number ?: "Chapter",
-                    onChapterList = { showChapterSheet = true },
-                    onQuickSettings = { showQuickSettings = true },
-                )
-            }
-        },
-    ) { padding ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(resolvedBackground.brush())
-        ) {
-            when {
-                state.isLoading -> VerseShimmer()
-                state.error != null -> ErrorState(
-                    message = state.error!!,
-                    onRetry = {
-                        viewModel.initialize(
-                            initialBible,
-                            initialBibleAbbr,
-                            initialBookId,
-                            initialChapterId,
-                            initialVerseId,
-                            initialSearchQry,
+            ReaderTopBar(
+                navController = navController,
+                state = state,
+                viewModel = viewModel,
+                onBibleClick = { showBibleSelector = true },
+                onBookClick = { showBookDrawer = true },
+                bookSwitchEnabled = !state.isScriptureModeActive,
+                onBookSwitchBlocked = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Finish or dismiss the scripture list to switch books"
                         )
                     }
-                )
-
-                else -> VerseList(
-                    state = state,
-                    viewModel = viewModel,
-                    fontFamily = resolvedFontFamily,
-                    listState = listState,
-                    hasPrevChapter = hasPrevChapter,
-                    hasNextChapter = hasNextChapter,
-                    prevChapterLabel = prevChapterLabel,
-                    nextChapterLabel = nextChapterLabel,
-                    onNavigatePrevChapter = { viewModel.navigateChapter(-1) },
-                    onNavigateNextChapter = { viewModel.navigateChapter(1) },
-                )
-            }
-
-            ReaderFab(
-                state = state,
-                modifier = Modifier.align(Alignment.BottomEnd),
-                navController = navController,
-                listState = listState,
+                },
             )
-        }
+        },
+        bottomBar = {
+            ReaderBottomBar(
+                navController = navController,
+                state = state,
+                viewModel = viewModel,
+                onChapterList = { showChapterSheet = true },
+                onQuickSettings = { showQuickSettings = true },
+            )
+        },
+    ) { padding ->
+        ReaderContent(
+            modifier = Modifier.padding(padding),
+            state = state,
+            viewModel = viewModel,
+            navController = navController,
+            listState = listState,
+            hasPrevChapter = hasPrevChapter,
+            hasNextChapter = hasNextChapter,
+            prevChapterLabel = prevChapterLabel,
+            nextChapterLabel = nextChapterLabel,
+            onRetry = {
+                viewModel.initialize(
+                    initialBible,
+                    initialBibleAbbr,
+                    initialBookId,
+                    initialChapterId,
+                    initialVerseId,
+                    initialSearchQry,
+                )
+            },
+        )
     }
 
     if (showBookDrawer) {
@@ -262,19 +212,11 @@ fun ReaderScreen(
     }
 
     if (state.showColorPicker) {
-        HighlightColorPickerDialog(
-            colors = ReaderViewModel.HIGHLIGHT_COLORS,
-            onColorChosen = viewModel::chooseHighlightColor,
-            onDismiss = viewModel::dismissColorPicker,
-        )
+        HighlightColorPickerDialog(viewModel = viewModel)
     }
 
     if (state.pendingHighlightColor != null) {
-        BookmarkOptionsDialog(
-            onBookmarkOnly = viewModel::confirmBookmarkOnly,
-            onBookmarkWithNotes = { viewModel.confirmBookmarkWithNotes() },
-            onDismiss = viewModel::cancelPendingHighlight,
-        )
+        BookmarkOptionsDialog(viewModel = viewModel)
     }
 
     if (showQuickSettings) {
@@ -289,12 +231,7 @@ fun ReaderScreen(
     if (!state.isLoading && state.error == null) {
         ScreenshotReminderDialog(
             onShareClick = {
-                val text = if (state.isSelectionMode) {
-                    viewModel.buildSelectionShareText()
-                } else {
-                    viewModel.buildActiveChapterShareText()
-                }
-                text?.let { ShareHelper.shareText(context, it) }
+                viewModel.buildShareText()?.let { ShareHelper.shareText(context, it) }
             },
         )
     }

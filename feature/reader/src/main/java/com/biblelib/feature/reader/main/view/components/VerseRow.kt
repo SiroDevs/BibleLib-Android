@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.biblelib.core.common.entity.VerseDisplay
 import com.biblelib.feature.reader.main.utils.SWIPE_ACTION_TRIGGER_PX
 import kotlin.math.roundToInt
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun VerseRow(
@@ -63,7 +64,7 @@ fun VerseRow(
 
     val rowBackground = when {
         isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-        bookmarkColor != null -> runCatching { Color(android.graphics.Color.parseColor(bookmarkColor)) }
+        bookmarkColor != null -> runCatching { Color(bookmarkColor.toColorInt()) }
             .getOrDefault(Color.Transparent).copy(alpha = 0.35f)
 
         else -> Color.Transparent
@@ -72,7 +73,6 @@ fun VerseRow(
     val highlightColor = MaterialTheme.colorScheme.secondaryContainer
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Background reveal icons behind the swiping row.
         Box(modifier = Modifier.fillMaxWidth()) {
             if (offsetX > 0f) {
                 Box(
@@ -133,7 +133,6 @@ fun VerseRow(
                 )
                 .padding(vertical = 6.dp, horizontal = 4.dp)
         ) {
-            // Primary verse
             Text(
                 text = buildAnnotatedString {
                     withStyle(
@@ -144,7 +143,7 @@ fun VerseRow(
                         )
                     ) { append("${verse.number} ") }
                     if (isBookmarked && bookmarkColor == null) {
-                        append("\uD83D\uDD16 ") // quick-bookmark icon glyph inline
+                        append("\uD83D\uDD16 ")
                     }
                     appendHighlighted(verse.text, highlightQuery, highlightColor)
                     if (hasNote) {

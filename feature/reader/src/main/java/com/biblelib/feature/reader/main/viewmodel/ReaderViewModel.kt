@@ -179,6 +179,11 @@ class ReaderViewModel @Inject constructor(
     fun buildSelectionShareText(): String? = annotations.buildSelectionShareText()
     fun buildActiveChapterShareText(): String? = annotations.buildActiveChapterShareText()
 
+    /** What tapping "Share" on the screenshot reminder should send — the current verse
+     *  selection if one is active, otherwise the whole active chapter. */
+    fun buildShareText(): String? =
+        if (_uiState.value.isSelectionMode) buildSelectionShareText() else buildActiveChapterShareText()
+
     override fun onCleared() {
         castingRepo.publishIdle()
         super.onCleared()
