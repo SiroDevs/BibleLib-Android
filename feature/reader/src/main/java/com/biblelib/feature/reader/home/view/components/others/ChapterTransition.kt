@@ -1,4 +1,4 @@
-package com.biblelib.feature.reader.home.view.components
+package com.biblelib.feature.reader.home.view.components.others
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing

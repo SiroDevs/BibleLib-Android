@@ -1,4 +1,4 @@
-package com.biblelib.feature.reader.home.view.components
+package com.biblelib.feature.reader.home.view.components.others
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

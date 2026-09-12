@@ -25,16 +25,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.ThemeRepo
-import com.biblelib.core.ui.components.share.ScreenshotReminderDialog
-import com.biblelib.core.ui.components.share.ShareHelper
-import com.biblelib.feature.reader.home.view.components.sheets.BibleSelectorSheet
-import com.biblelib.feature.reader.home.view.components.sheets.BookDrawer
-import com.biblelib.feature.reader.home.view.components.BookmarkOptionsDialog
-import com.biblelib.feature.reader.home.view.components.sheets.ChapterSheet
-import com.biblelib.feature.reader.home.view.components.HighlightColorPickerDialog
-import com.biblelib.feature.reader.home.view.components.QuickSettingsDialog
+import com.biblelib.feature.reader.home.view.components.others.ReaderOverlays
 import com.biblelib.feature.reader.home.view.components.actions.ReaderBottomBar
 import com.biblelib.feature.reader.home.view.components.actions.ReaderTopBar
+import com.biblelib.feature.reader.home.view.components.others.rememberAutoScrollController
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -75,6 +69,7 @@ fun ReaderScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val autoScroll = rememberAutoScrollController(listState)
 
     val activeChapterIndex = state.chapters.indexOfFirst { it.id == state.activeChapter?.id }
     val hasPrevChapter = activeChapterIndex > 0
@@ -143,9 +138,11 @@ fun ReaderScreen(
         },
         bottomBar = {
             ReaderBottomBar(
-                navController = navController,
                 state = state,
                 viewModel = viewModel,
+                isAutoScrolling = autoScroll.isAutoScrolling,
+                speedMultiplier = autoScroll.speedMultiplier,
+                onToggleAutoScroll = autoScroll::toggle,
                 onChapterList = { showChapterSheet = true },
                 onQuickSettings = { showQuickSettings = true },
             )
@@ -161,6 +158,9 @@ fun ReaderScreen(
             hasNextChapter = hasNextChapter,
             prevChapterLabel = prevChapterLabel,
             nextChapterLabel = nextChapterLabel,
+            isAutoScrolling = autoScroll.isAutoScrolling,
+            onSpeedUp = autoScroll::speedUp,
+            onSpeedDown = autoScroll::speedDown,
             onRetry = {
                 viewModel.initialize(
                     initialBible,
@@ -174,65 +174,19 @@ fun ReaderScreen(
         )
     }
 
-    if (showBookDrawer) {
-        BookDrawer(
-            state = state,
-            onSelect = { book ->
-                viewModel.selectBook(book)
-                showBookDrawer = false
-            },
-            onDismiss = { showBookDrawer = false },
-        )
-    }
-
-    if (showChapterSheet) {
-        ChapterSheet(
-            state = state,
-            onSelect = { ch ->
-                viewModel.selectChapter(ch)
-                showChapterSheet = false
-            },
-            onDismiss = { showChapterSheet = false },
-        )
-    }
-
-    if (showBibleSelector) {
-        BibleSelectorSheet(
-            state = state,
-            onSelect = { abbr ->
-                viewModel.setPrimaryBible(abbr)
-                showBibleSelector = false
-            },
-            onOpenBibles = {
-                showBibleSelector = false
-                navController.navigate(Routes.BIBLES)
-            },
-            onDismiss = { showBibleSelector = false },
-        )
-    }
-
-    if (state.showColorPicker) {
-        HighlightColorPickerDialog(viewModel = viewModel)
-    }
-
-    if (state.pendingHighlightColor != null) {
-        BookmarkOptionsDialog(viewModel = viewModel)
-    }
-
-    if (showQuickSettings) {
-        QuickSettingsDialog(
-            state = state,
-            themeRepo = themeRepo,
-            viewModel = viewModel,
-            onDismiss = { showQuickSettings = false },
-        )
-    }
-
-    if (!state.isLoading && state.error == null) {
-        ScreenshotReminderDialog(
-            onShareClick = {
-                viewModel.buildShareText()?.let { ShareHelper.shareText(context, it) }
-            },
-        )
-    }
+    ReaderOverlays(
+        state = state,
+        viewModel = viewModel,
+        navController = navController,
+        themeRepo = themeRepo,
+        context = context,
+        showBookDrawer = showBookDrawer,
+        onDismissBookDrawer = { showBookDrawer = false },
+        showChapterSheet = showChapterSheet,
+        onDismissChapterSheet = { showChapterSheet = false },
+        showBibleSelector = showBibleSelector,
+        onDismissBibleSelector = { showBibleSelector = false },
+        showQuickSettings = showQuickSettings,
+        onDismissQuickSettings = { showQuickSettings = false },
+    )
 }

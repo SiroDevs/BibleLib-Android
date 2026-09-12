@@ -15,6 +15,7 @@ import com.biblelib.feature.reader.home.utils.ReaderUiState
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import androidx.navigation.NavController
 import com.biblelib.feature.reader.home.view.components.actions.ReaderFab
+import com.biblelib.feature.reader.home.view.components.actions.SpeedButtonsFab
 import com.biblelib.feature.reader.home.view.components.verses.VerseList
 
 @Composable
@@ -27,6 +28,9 @@ fun ReaderContent(
     hasNextChapter: Boolean,
     prevChapterLabel: String,
     nextChapterLabel: String,
+    isAutoScrolling: Boolean,
+    onSpeedUp: () -> Unit,
+    onSpeedDown: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -64,6 +68,13 @@ fun ReaderContent(
             modifier = Modifier.align(Alignment.BottomEnd),
             navController = navController,
             listState = listState,
+        )
+
+        SpeedButtonsFab(
+            visible = isAutoScrolling,
+            onSpeedUp = onSpeedUp,
+            onSpeedDown = onSpeedDown,
+            modifier = Modifier.align(Alignment.BottomStart),
         )
     }
 }

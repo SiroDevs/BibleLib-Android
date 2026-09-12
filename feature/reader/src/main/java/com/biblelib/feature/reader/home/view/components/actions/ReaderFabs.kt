@@ -5,16 +5,23 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -73,5 +80,41 @@ fun ReaderFab(
             icon = { Icon(Icons.Filled.ManageSearch, "Scripture Opener") },
             text = { Text("Scripture Opener") },
         )
+    }
+}
+
+@Composable
+fun SpeedButtonsFab(
+    visible: Boolean,
+    onSpeedUp: () -> Unit,
+    onSpeedDown: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = modifier,
+    ) {
+        Surface(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .padding(start = 20.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 4.dp,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                IconButton(onClick = onSpeedUp) {
+                    Icon(Icons.Default.Add, contentDescription = "Speed up auto scroll")
+                }
+
+                IconButton(onClick = onSpeedDown) {
+                    Icon(Icons.Default.Remove, contentDescription = "Slow down auto scroll")
+                }
+            }
+        }
     }
 }

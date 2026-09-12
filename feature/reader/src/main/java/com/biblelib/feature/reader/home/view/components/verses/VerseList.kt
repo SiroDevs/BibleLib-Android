@@ -22,7 +22,7 @@ import com.biblelib.feature.reader.home.utils.CHAPTER_TRANSITION_DELAY_MS
 import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.PREV_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.ReaderUiState
-import com.biblelib.feature.reader.home.view.components.ChapterTransition
+import com.biblelib.feature.reader.home.view.components.others.ChapterTransition
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
