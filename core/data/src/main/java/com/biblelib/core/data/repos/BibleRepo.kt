@@ -41,14 +41,30 @@ class BibleRepo @Inject constructor(
 
     suspend fun fetchAvailableBibles(): List<BibleInfoDto> =
         withContext(Dispatchers.IO) {
-            RetryPolicy.retrying { service.getBiblesInfo() }
+            val groups = RetryPolicy.retrying { service.getGroups() }
+            coroutineScope {
+                groups.map { group ->
+                    async {
+                        try {
+                            RetryPolicy.retrying { service.getGroupInfo(group) }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "⚠️ Couldn't fetch group '$group', skipping", e)
+                            emptyList()
+                        }
+                    }
+                }.awaitAll().flatten()
+            }
         }
+
+    private suspend fun resolvePath(abbr: String): String =
+        bibleDao.getByAbbr(abbr)?.path?.ifBlank { abbr } ?: abbr
 
     suspend fun downloadBible(
         abbr: String,
         onProgress: suspend (step: String, progress: Float) -> Unit = { _, _ -> }
     ) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "▶ Downloading bible: $abbr")
+        val path = resolvePath(abbr)
+        Log.d(TAG, "▶ Downloading bible: $abbr (path=$path)")
 
         val reportProgress: suspend (String, Float) -> Unit = { step, progress ->
             bibleDao.updateProgress(abbr, progress)
@@ -57,7 +73,7 @@ class BibleRepo @Inject constructor(
 
         try {
             reportProgress("Fetching books...", 0.05f)
-            val booksResp = RetryPolicy.retrying { service.getBooks(abbr) }
+            val booksResp = RetryPolicy.retrying { service.getBooks(path) }
             val bookEntities = booksResp.mapIndexed { i, dto ->
                 BookEntity(
                     id = dto.id,
@@ -72,7 +88,7 @@ class BibleRepo @Inject constructor(
             Log.d(TAG, "✅ ${bookEntities.size} books saved for $abbr")
 
             reportProgress("Fetching chapters...", 0.15f)
-            val chaptersResp = RetryPolicy.retrying { service.getChapters(abbr) }
+            val chaptersResp = RetryPolicy.retrying { service.getChapters(path) }
             val chapterEntities = mutableListOf<ChapterEntity>()
             chaptersResp.forEach { (_, chapters) ->
                 chapters.forEach { dto ->
@@ -109,7 +125,7 @@ class BibleRepo @Inject constructor(
                                 val chaptersForBook = chaptersByBook[bookId].orEmpty()
                                 val pendingChapters = chaptersForBook.filter { it.id !in alreadyCachedChapterIds }
                                 if (pendingChapters.isNotEmpty()) {
-                                    val verseEntities = fetchVersesForBook(abbr, bookId, pendingChapters)
+                                    val verseEntities = fetchVersesForBook(abbr, path, bookId, pendingChapters)
                                     if (verseEntities.isNotEmpty()) {
                                         verseDao.insertAll(verseEntities)
                                     }
@@ -145,6 +161,7 @@ class BibleRepo @Inject constructor(
 
     private suspend fun fetchVersesForBook(
         abbr: String,
+        path: String,
         bookId: String,
         chapters: List<ChapterEntity>,
     ): List<VerseEntity> {
@@ -152,7 +169,7 @@ class BibleRepo @Inject constructor(
         for (chapter in chapters) {
             try {
                 val content = RetryPolicy.retrying {
-                    service.getVersesForChapter(abbr, bookId, chapter.number)
+                    service.getVersesForChapter(path, bookId, chapter.number)
                 }
                 val verses = extractVerses(content)
                 verseEntities.add(
@@ -240,22 +257,16 @@ class BibleRepo @Inject constructor(
 
         fun walkItems(items: List<ContentItemDto>) {
             for (item in items) {
-                // Gson deserializes a literal `null` inside a JSON array straight into
-                // the list, even though ContentItemDto's Kotlin type says non-null — the
-                // niv/GEN/44 payload has exactly this. Skip malformed entries instead of
-                // crashing the whole chapter.
                 @Suppress("SENSELESS_COMPARISON")
                 if (item == null) continue
 
                 if (item.type == "tag" && item.name == "verse") {
                     currentVerseNumber = item.attrs?.get("number")?.toIntOrNull() ?: currentVerseNumber
                     currentVerseId = item.attrs?.get("sid")?.replace(" ", ".") ?: ""
-                    // recurse into verse items (usually just the number text, skip it)
                 } else if (item.type == "text" && item.text != null) {
                     val verseId = item.attrs?.get("verseId") ?: ""
                     val text = item.text!!.trim()
                     if (verseId.isNotEmpty() && text.isNotEmpty() && currentVerseNumber > 0) {
-                        // Check if we already have this verse (append if same verse continues)
                         val existing = verses.lastOrNull { it.verseId == verseId }
                         if (existing != null) {
                             val idx = verses.lastIndexOf(existing)

@@ -10,20 +10,21 @@ import retrofit2.http.Path
 
 @Keep
 interface BibleLibService {
-
     @GET("info.json")
-    suspend fun getBiblesInfo(): List<BibleInfoDto>
+    suspend fun getGroups(): List<String>
 
-    @GET("{abbr}/books.json")
-    suspend fun getBooks(@Path("abbr") abbr: String): BooksResponse
+    @GET("{group}/info.json")
+    suspend fun getGroupInfo(@Path(value = "group", encoded = true) group: String): List<BibleInfoDto>
 
-    @GET("{abbr}/chapters.json")
-    suspend fun getChapters(@Path("abbr") abbr: String): ChaptersResponse
+    @GET("{path}/books.json")
+    suspend fun getBooks(@Path(value = "path", encoded = true) path: String): BooksResponse
 
-    // e.g. GET {abbr}/verses/RUT/1.json — book and chapter are now separate path segments.
-    @GET("{abbr}/verses/{bookId}/{chapter}.json")
+    @GET("{path}/chapters.json")
+    suspend fun getChapters(@Path(value = "path", encoded = true) path: String): ChaptersResponse
+
+    @GET("{path}/verses/{bookId}/{chapter}.json")
     suspend fun getVersesForChapter(
-        @Path("abbr") abbr: String,
+        @Path(value = "path", encoded = true) path: String,
         @Path("bookId") bookId: String,
         @Path("chapter") chapter: String,
     ): ChapterContentDto

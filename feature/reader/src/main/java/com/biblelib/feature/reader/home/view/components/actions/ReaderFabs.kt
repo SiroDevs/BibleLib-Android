@@ -107,12 +107,12 @@ fun SpeedButtonsFab(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                IconButton(onClick = onSpeedUp) {
-                    Icon(Icons.Default.Add, contentDescription = "Speed up auto scroll")
-                }
-
                 IconButton(onClick = onSpeedDown) {
                     Icon(Icons.Default.Remove, contentDescription = "Slow down auto scroll")
+                }
+
+                IconButton(onClick = onSpeedUp) {
+                    Icon(Icons.Default.Add, contentDescription = "Speed up auto scroll")
                 }
             }
         }
