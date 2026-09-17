@@ -10,7 +10,7 @@ object ApiConstants {
     const val PAYSTACK_CALLBACK_URL = "https://biblive.vercel.app/donation/callback"
     const val DONOR_EMAIL = "anonymous_donor@biblelib.app"
 
-    const val BIBLELIB_BASE = "https://biblive.vercel.app/"
+    const val BIBLELIB_BASE = "https://biblive.vercel.app/v2/"
 }
 
 object PayConstants {
