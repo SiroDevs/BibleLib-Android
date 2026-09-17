@@ -16,9 +16,9 @@ import kotlinx.coroutines.isActive
 
 private const val AUTO_SCROLL_BASE_PIXELS_PER_TICK = 2.5f
 private const val AUTO_SCROLL_TICK_MS = 16L
-private const val AUTO_SCROLL_MIN_SPEED = 0.5f
+private const val AUTO_SCROLL_MIN_SPEED = 0.25f
 private const val AUTO_SCROLL_MAX_SPEED = 4f
-private const val AUTO_SCROLL_SPEED_STEP = 0.5f
+private const val AUTO_SCROLL_SPEED_STEP = 0.25f
 
 @Stable
 class AutoScrollController(private val listState: LazyListState) {

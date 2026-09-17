@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 object ApiConstants {
     const val PAYSTACK_BASE_URL = "https://api.paystack.co/"
     const val PAYSTACK_INITIALIZE = "transaction/initialize"
-    const val PAYSTACK_CALLBACK_URL = "https://songlive.vercel.app/donation/callback"
+    const val PAYSTACK_CALLBACK_URL = "https://biblive.vercel.app/donation/callback"
     const val DONOR_EMAIL = "anonymous_donor@biblelib.app"
 
     const val BIBLELIB_BASE = "https://biblive.vercel.app/"

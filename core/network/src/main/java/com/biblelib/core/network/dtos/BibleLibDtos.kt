@@ -14,7 +14,10 @@ data class BibleInfoDto(
     val language: BibleLangDto = BibleLangDto(),
     val countries: List<BibleCountryDto> = emptyList(),
     val info: String = "",
+    val path: String = "",
 )
+
+fun BibleInfoDto.networkPath(): String = path.ifBlank { abbreviation }
 
 data class BibleLangDto(
     val id: String = "",
