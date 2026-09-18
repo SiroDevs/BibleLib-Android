@@ -8,13 +8,6 @@ import com.biblelib.core.database.entities.BibleEntity
 import com.biblelib.core.network.dtos.BibleInfoDto
 import com.biblelib.core.network.dtos.primaryCountryName
 
-/**
- * Persists a confirmed Bible selection: prefs (primary/secondary/selected lists), dropping
- * any Bibles that were deselected, and writing fresh [BibleEntity] rows (marked as not yet
- * downloaded) for everything the user picked. Shared by both [FirstTimeSelectionController]
- * and [ReturningSelectionController] since the bookkeeping itself doesn't differ between a
- * first install and a reselection — only what happens with the download afterwards does.
- */
 internal suspend fun persistSelectionBookkeeping(
     bibleRepo: BibleRepo,
     prefsRepo: PrefsRepo,
@@ -62,6 +55,7 @@ internal suspend fun persistSelectionBookkeeping(
                 sortOrder = index,
                 isDownloaded = false,
                 countryName = dto.primaryCountryName(),
+                path = dto.path,
             )
         }
     )

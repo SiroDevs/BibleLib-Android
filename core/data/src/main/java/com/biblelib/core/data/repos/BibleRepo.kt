@@ -13,6 +13,7 @@ import com.biblelib.core.database.entities.VerseEntity
 import com.biblelib.core.network.dtos.BibleInfoDto
 import com.biblelib.core.network.dtos.ChapterContentDto
 import com.biblelib.core.network.dtos.ContentItemDto
+import com.biblelib.core.network.dtos.primaryCountryName
 import com.biblelib.core.network.util.RetryPolicy
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -38,7 +39,6 @@ class BibleRepo @Inject constructor(
     private val verseDao: VerseDao,
 ) {
     private val gson = Gson()
-
     suspend fun fetchAvailableBibles(): List<BibleInfoDto> =
         withContext(Dispatchers.IO) {
             val groups = RetryPolicy.retrying { service.getGroups() }
@@ -64,7 +64,7 @@ class BibleRepo @Inject constructor(
         onProgress: suspend (step: String, progress: Float) -> Unit = { _, _ -> }
     ) = withContext(Dispatchers.IO) {
         val path = resolvePath(abbr)
-        Log.d(TAG, "▶ Downloading bible: $abbr (path=$path)")
+        Log.d(TAG, "▶ Downloading $abbr bible from path=$path")
 
         val reportProgress: suspend (String, Float) -> Unit = { step, progress ->
             bibleDao.updateProgress(abbr, progress)
@@ -213,9 +213,6 @@ class BibleRepo @Inject constructor(
 
     suspend fun getbibles(): List<BibleEntity> =
         withContext(Dispatchers.IO) { bibleDao.getAll() }
-
-    suspend fun saveBible(entity: BibleEntity) =
-        withContext(Dispatchers.IO) { bibleDao.insert(entity) }
 
     suspend fun saveBibles(entities: List<BibleEntity>) =
         withContext(Dispatchers.IO) { bibleDao.insertAll(entities) }
