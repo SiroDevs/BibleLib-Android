@@ -53,7 +53,7 @@ fun BiblePill(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(76.dp)
+            .height(85.dp)
             .clip(PillShape)
             .border(BorderStroke(1.5.dp, borderColor), PillShape)
     ) {
@@ -162,13 +162,19 @@ fun BiblePill(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = PillOnDark,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = bible.description,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = PillOnDark,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${bible.abbreviation.uppercase()} BIBLE",
+                        text = "${bible.languageName.uppercase()} BIBLE",
                         style = MaterialTheme.typography.labelMedium,
                         color = PillOnDark.copy(alpha = 0.85f),
                         maxLines = 1,
