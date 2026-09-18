@@ -22,5 +22,5 @@ data class BibleEntity(
     val countryName: String = "",
     val downloadProgress: Float = 0f,
     val downloadFailed: Boolean = false,
-    val path: String = "",
+    val path: String,
 ) : Parcelable

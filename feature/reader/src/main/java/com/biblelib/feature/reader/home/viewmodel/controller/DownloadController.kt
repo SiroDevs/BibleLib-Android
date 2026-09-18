@@ -71,7 +71,11 @@ class DownloadController(
     }
 
     private fun placeholderBible(abbr: String) = BibleEntity(
-        abbreviation = abbr, name = "", description = "", languageName = "",
+        abbreviation = abbr,
+        name = "",
+        description = "",
+        languageName = "",
         scriptDirection = "LTR",
+        path = ""
     )
 }

@@ -17,8 +17,6 @@ data class BibleInfoDto(
     val path: String = "",
 )
 
-fun BibleInfoDto.networkPath(): String = path.ifBlank { abbreviation }
-
 data class BibleLangDto(
     val id: String = "",
     val name: String = "",
