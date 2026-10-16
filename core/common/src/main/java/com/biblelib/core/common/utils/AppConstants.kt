@@ -13,6 +13,15 @@ object ApiConstants {
     const val BIBLELIB_BASE = "https://biblive.vercel.app/v2/"
 }
 
+object CrossPromo {
+    const val SONGLIB_PACKAGE = "com.songlib"
+    const val SWAHILIB_PACKAGE = "com.swahilib"
+    const val CHURCHLIB_URL = "https://churchlib.sirodevs.com"
+
+    const val PROMO_FIRST_DELAY_MS = 60 * 60 * 1000L
+    const val PROMO_REMIND_DELAY_MS = 3 * 60 * 60 * 1000L
+}
+
 object PayConstants {
     const val MPESA_NUMBER = "+254115586529"
     const val PAYBILL_NUMBER = "880100"
@@ -37,6 +46,8 @@ object PrefConstants {
     const val DONATION_DONE_AT = "donation_done_at"
     const val DONATION_METHOD = "donation_method"
     const val DONATION_REMIND_NEXT_OPEN = "donation_remind_next"
+    const val CHURCHLIB_PROMO_DONE = "churchlib_promo_done"
+    const val CHURCHLIB_PROMO_REMIND_AT = "churchlib_promo_remind_at"
     const val LAST_SYNCED_AT = "last_synced_at"
 
     const val LAST_BOOK_ID = "lastBookId"

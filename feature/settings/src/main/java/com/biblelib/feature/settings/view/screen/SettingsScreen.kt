@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.feature.settings.view.components.AlsoBySiroApps
 import com.biblelib.feature.settings.view.components.SettingsGroupLabel
 import com.biblelib.feature.settings.view.components.SettingsNavRow
 
@@ -124,6 +125,9 @@ fun SettingsScreen(navController: NavController) {
                     onClick = { navController.navigate(Routes.HOW_IT_WORKS) },
                 )
             }
+
+            item { SettingsGroupLabel("Also by Siro Devs") }
+            item { AlsoBySiroApps() }
         }
     }
 }

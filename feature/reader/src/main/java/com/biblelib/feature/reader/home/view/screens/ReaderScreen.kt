@@ -24,8 +24,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
+import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.components.review.ReviewPromptHost
+import com.biblelib.feature.reader.home.view.components.others.ChurchLibPromo
 import com.biblelib.feature.reader.home.view.components.others.ReaderOverlays
 import com.biblelib.feature.reader.home.view.components.actions.ReaderBottomBar
 import com.biblelib.feature.reader.home.view.components.actions.ReaderTopBar
@@ -48,6 +50,7 @@ fun ReaderScreen(
     initialVerseId: String = "",
     initialSearchQry: String = "",
     themeRepo: ThemeRepo,
+    prefsRepo: PrefsRepo,
 ) {
     LaunchedEffect(Unit) {
         viewModel.initialize(
@@ -91,11 +94,17 @@ fun ReaderScreen(
             }
     }
 
-    ReviewPromptHost(
-        enabled = !autoScroll.isAutoScrolling &&
-                !showBookDrawer && !showChapterSheet &&
-                !showBibleSelector && !showQuickSettings,
+    var churchLibPromoVisible by remember { mutableStateOf(false) }
+    val promptsAllowed = !autoScroll.isAutoScrolling &&
+            !showBookDrawer && !showChapterSheet &&
+            !showBibleSelector && !showQuickSettings
+
+    ChurchLibPromo(
+        prefsRepo = prefsRepo,
+        enabled = promptsAllowed,
+        onVisibleChange = { churchLibPromoVisible = it },
     )
+    ReviewPromptHost(enabled = promptsAllowed && !churchLibPromoVisible)
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentViewModel = rememberUpdatedState(viewModel)
