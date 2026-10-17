@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.biblelib.core.common.utils.Routes
+import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.viewmodel.MainViewModel
 import com.biblelib.feature.bibles.view.screens.BiblesScreen
@@ -27,6 +28,7 @@ import com.biblelib.feature.selection.viewmodel.SelectionViewModel
 fun NavGraphBuilder.mainGraph(
     navController: NavHostController,
     themeRepo: ThemeRepo,
+    prefsRepo: PrefsRepo,
     mainViewModel: MainViewModel,
 ) {
     composable(Routes.SELECTION) {
@@ -66,6 +68,7 @@ fun NavGraphBuilder.mainGraph(
             initialVerseId = verseId,
             initialSearchQry = searchQuery,
             themeRepo = themeRepo,
+            prefsRepo = prefsRepo,
         )
     }
 

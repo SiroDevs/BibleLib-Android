@@ -3,6 +3,7 @@ package com.biblelib.core.data.repos
 import android.content.Context
 import androidx.core.content.edit
 import com.biblelib.core.common.entity.DonationMethod
+import com.biblelib.core.common.utils.CrossPromo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.biblelib.core.common.utils.PrefConstants
 import java.util.Calendar
@@ -119,6 +120,30 @@ class PrefsRepo @Inject constructor(
     var donationRemindNextOpen: Boolean
         get() = prefs.getBoolean(PrefConstants.DONATION_REMIND_NEXT_OPEN, false)
         set(value) = prefs.edit { putBoolean(PrefConstants.DONATION_REMIND_NEXT_OPEN, value) }
+
+    var churchLibPromoDone: Boolean
+        get() = prefs.getBoolean(PrefConstants.CHURCHLIB_PROMO_DONE, false)
+        set(value) = prefs.edit { putBoolean(PrefConstants.CHURCHLIB_PROMO_DONE, value) }
+
+    private var churchLibPromoRemindAt: Long
+        get() = prefs.getLong(PrefConstants.CHURCHLIB_PROMO_REMIND_AT, 0L)
+        set(value) = prefs.edit { putLong(PrefConstants.CHURCHLIB_PROMO_REMIND_AT, value) }
+
+    /** Millis until the ChurchLib promo is due (0 = due now), or null if it must never show. */
+    fun churchLibPromoWaitMs(): Long? {
+        if (churchLibPromoDone || installDate == 0L) return null
+        val remindAt = churchLibPromoRemindAt
+        val dueAt = if (remindAt > 0L) remindAt else installDate + CrossPromo.PROMO_FIRST_DELAY_MS
+        return (dueAt - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
+
+    fun remindChurchLibPromoLater() {
+        churchLibPromoRemindAt = System.currentTimeMillis() + CrossPromo.PROMO_REMIND_DELAY_MS
+    }
+
+    fun markChurchLibPromoSeen() {
+        churchLibPromoDone = true
+    }
 
     fun shouldShowDonation(): Boolean {
         val now = System.currentTimeMillis()
