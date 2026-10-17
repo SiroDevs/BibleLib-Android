@@ -42,6 +42,7 @@ fun AppNavHost(
         mainGraph(
             navController = navController,
             themeRepo = themeRepo,
+            prefsRepo = prefsRepo,
             mainViewModel = mainViewModel,
         )
         settingsGraph(
