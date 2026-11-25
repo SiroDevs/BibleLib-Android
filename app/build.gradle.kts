@@ -19,6 +19,11 @@ if (keystorePropertiesFile.exists()) {
 val localProperties = Properties()
 localProperties.load(project.rootProject.file("local.properties").inputStream())
 
+val sentryAuthToken = providers.gradleProperty("SENTRY_AUTH_TOKEN").orNull
+    ?: providers.environmentVariable("SENTRY_AUTH_TOKEN").orNull
+    ?: localProperties.getProperty("SENTRY_AUTH_TOKEN")
+val canUploadSentryArtifacts = !sentryAuthToken.isNullOrBlank()
+
 android {
     compileSdk = 37
 
@@ -136,6 +141,7 @@ sentry {
     debug.set(true)
     org.set("futuristicken")
     projectName.set("biblelib-android")
-    includeSourceContext.set(true)
-    authToken.set(localProperties.getProperty("SENTRY_AUTH_TOKEN"))
+    includeSourceContext.set(canUploadSentryArtifacts)
+    autoUploadProguardMapping.set(canUploadSentryArtifacts)
+    authToken.set(sentryAuthToken)
 }
