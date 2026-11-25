@@ -17,6 +17,7 @@ import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.PREV_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.ReaderUiState
+import com.biblelib.feature.reader.home.view.components.others.ChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.others.ChapterTransition
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 
@@ -30,9 +31,12 @@ fun VerseList(
     hasNextChapter: Boolean = false,
     prevChapterLabel: String = "",
     nextChapterLabel: String = "",
-    onChapterEdgeReached: (ChapterEdge) -> Unit = {},
-    onChapterEdgeLeft: (ChapterEdge) -> Unit = {},
+    edgePrompt: ChapterEdgePrompt,
 ) {
+    val onEdgeReached: (ChapterEdge) -> Unit = { edge ->
+        edgePrompt.show(edge, if (edge == ChapterEdge.START) prevChapterLabel else nextChapterLabel)
+    }
+
     val hasParallel = state.parallelVerses.isNotEmpty()
 
     val itemIndexOffset = if (hasPrevChapter) 1 else 0
@@ -51,16 +55,16 @@ fun VerseList(
         enabled = hasPrevChapter,
         listState = listState,
         chapterId = state.activeChapter?.id,
-        onReached = onChapterEdgeReached,
-        onLeft = onChapterEdgeLeft,
+        onReached = onEdgeReached,
+        onLeft = edgePrompt::hide,
     )
     ChapterEdgeEffect(
         edge = ChapterEdge.END,
         enabled = hasNextChapter,
         listState = listState,
         chapterId = state.activeChapter?.id,
-        onReached = onChapterEdgeReached,
-        onLeft = onChapterEdgeLeft,
+        onReached = onEdgeReached,
+        onLeft = edgePrompt::hide,
     )
 
     LazyColumn(
@@ -72,6 +76,7 @@ fun VerseList(
             item(key = PREV_CHAPTER_KEY) {
                 ChapterTransition(
                     label = prevChapterLabel,
+                    visible = ChapterEdge.START !in edgePrompt.hiddenEdges,
                     icon = Icons.Filled.KeyboardArrowUp,
                     iconAbove = true,
                 )
@@ -105,6 +110,7 @@ fun VerseList(
             item(key = NEXT_CHAPTER_KEY) {
                 ChapterTransition(
                     label = nextChapterLabel,
+                    visible = ChapterEdge.END !in edgePrompt.hiddenEdges,
                     icon = Icons.Filled.KeyboardArrowDown,
                     iconAbove = false,
                 )

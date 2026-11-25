@@ -12,16 +12,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.biblelib.feature.reader.R
+import com.biblelib.feature.reader.home.utils.CHAPTER_EDGE_PROMPT_TIMEOUT_MS
 import com.biblelib.feature.reader.home.utils.ChapterEdge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 // Asks the reader whether to move to the neighbouring chapter once a chapter edge is reached
 @Stable
@@ -34,6 +38,10 @@ class ChapterEdgePrompt internal constructor(
     private var promptJob: Job? = null
     private var promptEdge: ChapterEdge? = null
 
+    // Edges whose indicator is hidden after the prompt was ignored or timed out
+    var hiddenEdges by mutableStateOf(emptySet<ChapterEdge>())
+        private set
+
     fun show(edge: ChapterEdge, chapterLabel: String) {
         promptJob?.cancel()
         promptEdge = edge
@@ -42,17 +50,24 @@ class ChapterEdgePrompt internal constructor(
                 ChapterEdge.START -> R.string.chapter_edge_start
                 ChapterEdge.END -> R.string.chapter_edge_end
             }
-            val result = hostState.showSnackbar(
-                message = context.getString(messageRes, chapterLabel),
-                actionLabel = context.getString(R.string.chapter_edge_accept),
-                duration = SnackbarDuration.Indefinite,
-            )
-            if (result == SnackbarResult.ActionPerformed) onAccept(edge.direction)
+            val result = withTimeoutOrNull(CHAPTER_EDGE_PROMPT_TIMEOUT_MS) {
+                hostState.showSnackbar(
+                    message = context.getString(messageRes, chapterLabel),
+                    actionLabel = context.getString(R.string.chapter_edge_accept),
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+            if (result == SnackbarResult.ActionPerformed) {
+                onAccept(edge.direction)
+            } else {
+                hiddenEdges = hiddenEdges + edge
+            }
         }
     }
 
     // Withdraws the prompt when the reader scrolls away from the edge that raised it
     fun hide(edge: ChapterEdge) {
+        hiddenEdges = hiddenEdges - edge
         if (promptEdge == edge) dismiss()
     }
 
@@ -60,6 +75,7 @@ class ChapterEdgePrompt internal constructor(
         promptJob?.cancel()
         promptJob = null
         promptEdge = null
+        hiddenEdges = emptySet()
     }
 }
 

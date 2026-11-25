@@ -3,6 +3,7 @@ package com.biblelib.feature.reader.home.view.components.verses
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import com.biblelib.feature.reader.home.utils.ChapterEdge
@@ -10,7 +11,6 @@ import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.PREV_CHAPTER_KEY
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-// Reports when the list is scrolled fully onto the given chapter edge, and when it leaves it
 @Composable
 fun ChapterEdgeEffect(
     edge: ChapterEdge,

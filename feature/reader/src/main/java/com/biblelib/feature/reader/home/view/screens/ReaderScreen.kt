@@ -27,7 +27,6 @@ import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.components.review.ReviewPromptHost
 import com.biblelib.feature.reader.R
-import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.view.components.others.ChurchLibPromo
 import com.biblelib.feature.reader.home.view.components.others.ReaderSnackbarHost
 import com.biblelib.feature.reader.home.view.components.others.rememberChapterEdgePrompt
@@ -181,11 +180,7 @@ fun ReaderScreen(
             prevChapterLabel = prevChapterLabel,
             nextChapterLabel = nextChapterLabel,
             isAutoScrolling = autoScroll.isAutoScrolling,
-            onChapterEdgeReached = { edge ->
-                val label = if (edge == ChapterEdge.START) prevChapterLabel else nextChapterLabel
-                chapterEdgePrompt.show(edge, label)
-            },
-            onChapterEdgeLeft = chapterEdgePrompt::hide,
+            edgePrompt = chapterEdgePrompt,
             onSpeedUp = autoScroll::speedUp,
             onSpeedDown = autoScroll::speedDown,
             onRetry = {

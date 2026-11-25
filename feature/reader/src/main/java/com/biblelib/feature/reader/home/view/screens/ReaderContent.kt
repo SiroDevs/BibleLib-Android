@@ -11,11 +11,11 @@ import com.biblelib.core.design_system.customization.AppFontFamilies
 import com.biblelib.core.design_system.customization.AppReaderBackgrounds
 import com.biblelib.core.ui.components.indicators.ErrorState
 import com.biblelib.core.ui.components.indicators.VerseShimmer
-import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.utils.ReaderUiState
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import androidx.navigation.NavController
 import com.biblelib.feature.reader.home.view.components.actions.ReaderFab
+import com.biblelib.feature.reader.home.view.components.others.ChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.actions.SpeedButtonsFab
 import com.biblelib.feature.reader.home.view.components.verses.VerseList
 
@@ -30,8 +30,7 @@ fun ReaderContent(
     prevChapterLabel: String,
     nextChapterLabel: String,
     isAutoScrolling: Boolean,
-    onChapterEdgeReached: (ChapterEdge) -> Unit,
-    onChapterEdgeLeft: (ChapterEdge) -> Unit,
+    edgePrompt: ChapterEdgePrompt,
     onSpeedUp: () -> Unit,
     onSpeedDown: () -> Unit,
     onRetry: () -> Unit,
@@ -61,8 +60,7 @@ fun ReaderContent(
                 hasNextChapter = hasNextChapter,
                 prevChapterLabel = prevChapterLabel,
                 nextChapterLabel = nextChapterLabel,
-                onChapterEdgeReached = onChapterEdgeReached,
-                onChapterEdgeLeft = onChapterEdgeLeft,
+                edgePrompt = edgePrompt,
             )
         }
 

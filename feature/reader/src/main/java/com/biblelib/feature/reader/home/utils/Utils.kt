@@ -12,6 +12,8 @@ const val SWIPE_ACTION_TRIGGER_PX = 140f
 const val PREV_CHAPTER_KEY = "__prev_chapter_sentinel__"
 const val NEXT_CHAPTER_KEY = "__next_chapter_sentinel__"
 
+const val CHAPTER_EDGE_PROMPT_TIMEOUT_MS = 5_000L
+
 // Chapter edge the reader has scrolled to; direction is the chapter offset to navigate by
 enum class ChapterEdge(val direction: Int) {
     START(-1),
