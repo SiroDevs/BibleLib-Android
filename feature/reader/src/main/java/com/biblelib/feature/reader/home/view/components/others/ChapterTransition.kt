@@ -1,26 +1,17 @@
 package com.biblelib.feature.reader.home.view.components.others
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,11 +23,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+// Hint shown at a chapter edge, naming the neighbouring chapter
 @Composable
 fun ChapterTransition(
     label: String,
     icon: ImageVector,
-    isTransitioning: Boolean,
     iconAbove: Boolean,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "chapter_edge_bounce")
@@ -50,6 +41,7 @@ fun ChapterTransition(
         label = "chapter_edge_bounce_value",
     )
     val bounceOffset = 4.dp * (if (iconAbove) -bounce else bounce)
+    val hintColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
 
     Column(
         modifier = Modifier
@@ -59,42 +51,17 @@ fun ChapterTransition(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        AnimatedContent(
-            targetState = isTransitioning,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "chapter_edge_content",
-        ) { transitioning ->
-            if (transitioning) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Opening $label…",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        modifier = Modifier.offset(y = bounceOffset),
-                    )
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = hintColor,
+            modifier = Modifier.offset(y = bounceOffset),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = hintColor,
+            textAlign = TextAlign.Center,
+        )
     }
 }

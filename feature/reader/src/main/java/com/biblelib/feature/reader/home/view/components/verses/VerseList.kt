@@ -11,22 +11,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.biblelib.feature.reader.home.utils.CHAPTER_TRANSITION_DELAY_MS
+import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.PREV_CHAPTER_KEY
 import com.biblelib.feature.reader.home.utils.ReaderUiState
 import com.biblelib.feature.reader.home.view.components.others.ChapterTransition
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun VerseList(
@@ -36,10 +28,10 @@ fun VerseList(
     listState: LazyListState = rememberLazyListState(),
     hasPrevChapter: Boolean = false,
     hasNextChapter: Boolean = false,
-    prevChapterLabel: String = "Previous chapter",
-    nextChapterLabel: String = "Next chapter",
-    onNavigatePrevChapter: () -> Unit = {},
-    onNavigateNextChapter: () -> Unit = {},
+    prevChapterLabel: String = "",
+    nextChapterLabel: String = "",
+    onChapterEdgeReached: (ChapterEdge) -> Unit = {},
+    onChapterEdgeLeft: (ChapterEdge) -> Unit = {},
 ) {
     val hasParallel = state.parallelVerses.isNotEmpty()
 
@@ -54,46 +46,22 @@ fun VerseList(
         }
     }
 
-    var isTransitioningPrev by remember(state.activeChapter?.id) { mutableStateOf(false) }
-    var isTransitioningNext by remember(state.activeChapter?.id) { mutableStateOf(false) }
-
-    LaunchedEffect(listState, hasPrevChapter, state.activeChapter?.id) {
-        if (!hasPrevChapter) {
-            isTransitioningPrev = false
-            return@LaunchedEffect
-        }
-        snapshotFlow {
-            listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key == PREV_CHAPTER_KEY &&
-                    !listState.canScrollBackward
-        }.distinctUntilChanged().collectLatest { revealed ->
-            if (revealed) {
-                isTransitioningPrev = true
-                delay(CHAPTER_TRANSITION_DELAY_MS)
-                onNavigatePrevChapter()
-            } else {
-                isTransitioningPrev = false
-            }
-        }
-    }
-
-    LaunchedEffect(listState, hasNextChapter, state.activeChapter?.id) {
-        if (!hasNextChapter) {
-            isTransitioningNext = false
-            return@LaunchedEffect
-        }
-        snapshotFlow {
-            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.key == NEXT_CHAPTER_KEY &&
-                    !listState.canScrollForward
-        }.distinctUntilChanged().collectLatest { revealed ->
-            if (revealed) {
-                isTransitioningNext = true
-                delay(CHAPTER_TRANSITION_DELAY_MS)
-                onNavigateNextChapter()
-            } else {
-                isTransitioningNext = false
-            }
-        }
-    }
+    ChapterEdgeEffect(
+        edge = ChapterEdge.START,
+        enabled = hasPrevChapter,
+        listState = listState,
+        chapterId = state.activeChapter?.id,
+        onReached = onChapterEdgeReached,
+        onLeft = onChapterEdgeLeft,
+    )
+    ChapterEdgeEffect(
+        edge = ChapterEdge.END,
+        enabled = hasNextChapter,
+        listState = listState,
+        chapterId = state.activeChapter?.id,
+        onReached = onChapterEdgeReached,
+        onLeft = onChapterEdgeLeft,
+    )
 
     LazyColumn(
         state = listState,
@@ -105,7 +73,6 @@ fun VerseList(
                 ChapterTransition(
                     label = prevChapterLabel,
                     icon = Icons.Filled.KeyboardArrowUp,
-                    isTransitioning = isTransitioningPrev,
                     iconAbove = true,
                 )
             }
@@ -139,7 +106,6 @@ fun VerseList(
                 ChapterTransition(
                     label = nextChapterLabel,
                     icon = Icons.Filled.KeyboardArrowDown,
-                    isTransitioning = isTransitioningNext,
                     iconAbove = false,
                 )
             }

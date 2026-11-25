@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -27,7 +26,11 @@ import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.components.review.ReviewPromptHost
+import com.biblelib.feature.reader.R
+import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.view.components.others.ChurchLibPromo
+import com.biblelib.feature.reader.home.view.components.others.ReaderSnackbarHost
+import com.biblelib.feature.reader.home.view.components.others.rememberChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.others.ReaderOverlays
 import com.biblelib.feature.reader.home.view.components.actions.ReaderBottomBar
 import com.biblelib.feature.reader.home.view.components.actions.ReaderTopBar
@@ -78,10 +81,13 @@ fun ReaderScreen(
     val activeChapterIndex = state.chapters.indexOfFirst { it.id == state.activeChapter?.id }
     val hasPrevChapter = activeChapterIndex > 0
     val hasNextChapter = activeChapterIndex in 0 until state.chapters.size - 1
-    val prevChapterLabel =
-        state.chapters.getOrNull(activeChapterIndex - 1)?.reference ?: "Previous chapter"
-    val nextChapterLabel =
-        state.chapters.getOrNull(activeChapterIndex + 1)?.reference ?: "Next chapter"
+    val prevChapterLabel = state.chapters.getOrNull(activeChapterIndex - 1)?.reference.orEmpty()
+    val nextChapterLabel = state.chapters.getOrNull(activeChapterIndex + 1)?.reference.orEmpty()
+    val chapterEdgePrompt = rememberChapterEdgePrompt(
+        hostState = snackbarHostState,
+        chapterId = state.activeChapter?.id,
+        onAccept = viewModel::navigateChapter,
+    )
     val itemIndexOffset = if (hasPrevChapter) 1 else 0
 
     LaunchedEffect(listState, state.verses, itemIndexOffset) {
@@ -134,7 +140,7 @@ fun ReaderScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ReaderSnackbarHost(snackbarHostState) },
         topBar = {
             ReaderTopBar(
                 navController = navController,
@@ -146,7 +152,7 @@ fun ReaderScreen(
                 onBookSwitchBlocked = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            "Finish or dismiss the scripture list to switch books"
+                            context.getString(R.string.scripture_mode_switch_blocked)
                         )
                     }
                 },
@@ -175,6 +181,11 @@ fun ReaderScreen(
             prevChapterLabel = prevChapterLabel,
             nextChapterLabel = nextChapterLabel,
             isAutoScrolling = autoScroll.isAutoScrolling,
+            onChapterEdgeReached = { edge ->
+                val label = if (edge == ChapterEdge.START) prevChapterLabel else nextChapterLabel
+                chapterEdgePrompt.show(edge, label)
+            },
+            onChapterEdgeLeft = chapterEdgePrompt::hide,
             onSpeedUp = autoScroll::speedUp,
             onSpeedDown = autoScroll::speedDown,
             onRetry = {

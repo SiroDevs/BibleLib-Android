@@ -11,7 +11,7 @@ plugins {
 }
 
 val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("keystore/key.properties")
+val keystorePropertiesFile = project.file("keystore/key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
@@ -38,7 +38,9 @@ android {
             keyAlias = keystoreProperties["KEY_ALIAS"] as String
             keyPassword = keystoreProperties["KEY_PASSWORD"] as String
             storePassword = keystoreProperties["KEYSTORE_PASSWORD"] as String
-            storeFile = keystoreProperties["STORE_FILE"]?.let { file(it as String) }
+            storeFile = keystoreProperties["STORE_FILE"]?.let {
+                keystorePropertiesFile.parentFile.resolve(it as String)
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import com.biblelib.core.design_system.customization.AppFontFamilies
 import com.biblelib.core.design_system.customization.AppReaderBackgrounds
 import com.biblelib.core.ui.components.indicators.ErrorState
 import com.biblelib.core.ui.components.indicators.VerseShimmer
+import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.utils.ReaderUiState
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import androidx.navigation.NavController
@@ -29,6 +30,8 @@ fun ReaderContent(
     prevChapterLabel: String,
     nextChapterLabel: String,
     isAutoScrolling: Boolean,
+    onChapterEdgeReached: (ChapterEdge) -> Unit,
+    onChapterEdgeLeft: (ChapterEdge) -> Unit,
     onSpeedUp: () -> Unit,
     onSpeedDown: () -> Unit,
     onRetry: () -> Unit,
@@ -58,8 +61,8 @@ fun ReaderContent(
                 hasNextChapter = hasNextChapter,
                 prevChapterLabel = prevChapterLabel,
                 nextChapterLabel = nextChapterLabel,
-                onNavigatePrevChapter = { viewModel.navigateChapter(-1) },
-                onNavigateNextChapter = { viewModel.navigateChapter(1) },
+                onChapterEdgeReached = onChapterEdgeReached,
+                onChapterEdgeLeft = onChapterEdgeLeft,
             )
         }
 
