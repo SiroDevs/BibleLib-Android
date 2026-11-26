@@ -8,12 +8,17 @@ import com.biblelib.core.database.entities.ScriptureItemEntity
 
 const val SWIPE_ACTION_TRIGGER_PX = 140f
 
-/** Keys for the two sentinel items that trigger auto chapter navigation, see [VerseList]. */
+// Keys for the sentinel items shown at the edges of a chapter, see [VerseList]
 const val PREV_CHAPTER_KEY = "__prev_chapter_sentinel__"
 const val NEXT_CHAPTER_KEY = "__next_chapter_sentinel__"
 
-/** How long a chapter-edge sentinel must stay on screen before we actually navigate. */
-const val CHAPTER_TRANSITION_DELAY_MS = 550L
+const val CHAPTER_EDGE_PROMPT_TIMEOUT_MS = 5_000L
+
+// Chapter edge the reader has scrolled to; direction is the chapter offset to navigate by
+enum class ChapterEdge(val direction: Int) {
+    START(-1),
+    END(1),
+}
 
 data class NotesNavRequest(
     val bibleAbbr: String,

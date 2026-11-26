@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="old_testament">Old Testament</string>
+    <string name="new_testament">New Testament</string>
+    <string name="open_scripture">Open Scripture · %1$s</string>
+    <string name="open_scripture_short">Open Scripture</string>
+    <string name="add_to_queue">Add to Queue</string>
+    <string name="queue_and_close">Queue &amp; Close</string>
+    <string name="queue_and_finish">Queue &amp; Finish</string>
+</resources>

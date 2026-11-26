@@ -10,23 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -35,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.biblelib.core.database.entities.BookEntity
 import com.biblelib.core.database.entities.ChapterEntity
@@ -193,46 +182,5 @@ private fun LoadingRow() {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun ScriptureActionButtons(
-    reference: String,
-    onOpenScripture: () -> Unit,
-    onAddToQueue: () -> Unit,
-    onAddToQueueAndClose: () -> Unit,
-    onAddToQueueAndFinish: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Button(onClick = onOpenScripture, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.MenuBook, null)
-            Spacer(Modifier.width(8.dp))
-            Text("Open Scripture · $reference", maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onAddToQueue, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.PlaylistAdd, null)
-                Spacer(Modifier.width(4.dp))
-                Text("Add to Queue")
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onAddToQueueAndClose, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.Close, null)
-                Spacer(Modifier.width(4.dp))
-                Text("Queue & Close", maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            OutlinedButton(onClick = onAddToQueueAndFinish, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.Done, null)
-                Spacer(Modifier.width(4.dp))
-                Text("Queue & Finish", maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chapter_edge_end">You have reached the end of this chapter. Proceed to %1$s?</string>
+    <string name="chapter_edge_start">You have reached the start of this chapter. Go back to %1$s?</string>
+    <string name="chapter_edge_accept">ACCEPT</string>
+    <string name="chapter_edge_ignore">IGNORE</string>
+    <string name="scripture_mode_switch_blocked">Finish or dismiss the scripture list to switch books</string>
+</resources>

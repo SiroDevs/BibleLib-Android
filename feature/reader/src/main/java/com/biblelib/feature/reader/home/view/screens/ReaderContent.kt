@@ -15,6 +15,7 @@ import com.biblelib.feature.reader.home.utils.ReaderUiState
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import androidx.navigation.NavController
 import com.biblelib.feature.reader.home.view.components.actions.ReaderFab
+import com.biblelib.feature.reader.home.view.components.others.ChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.actions.SpeedButtonsFab
 import com.biblelib.feature.reader.home.view.components.verses.VerseList
 
@@ -29,6 +30,7 @@ fun ReaderContent(
     prevChapterLabel: String,
     nextChapterLabel: String,
     isAutoScrolling: Boolean,
+    edgePrompt: ChapterEdgePrompt,
     onSpeedUp: () -> Unit,
     onSpeedDown: () -> Unit,
     onRetry: () -> Unit,
@@ -58,8 +60,7 @@ fun ReaderContent(
                 hasNextChapter = hasNextChapter,
                 prevChapterLabel = prevChapterLabel,
                 nextChapterLabel = nextChapterLabel,
-                onNavigatePrevChapter = { viewModel.navigateChapter(-1) },
-                onNavigateNextChapter = { viewModel.navigateChapter(1) },
+                edgePrompt = edgePrompt,
             )
         }
 
