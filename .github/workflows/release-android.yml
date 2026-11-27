@@ -1,0 +1,167 @@
+name: BibleLib Android Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: biblelib-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-version:
+    name: Check release version
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.version.outputs.should_release }}
+      version_name: ${{ steps.version.outputs.version_name }}
+      version_code: ${{ steps.version.outputs.version_code }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compare with latest GitHub release
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/check_release_version.sh
+
+  build-release:
+    name: Build signed APK and AAB
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION_NAME: ${{ needs.check-version.outputs.version_name }}
+      VERSION_CODE: ${{ needs.check-version.outputs.version_code }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Configure release signing
+        id: signing
+        run: bash .github/scripts/configure_release_signing.sh
+
+      - name: Create local Gradle properties
+        run: |
+          set -euo pipefail
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+          if [ -n "$PAYSTACK_SECRET_KEY" ]; then
+            printf 'PAYSTACK_SECRET_KEY=%s\n' "$PAYSTACK_SECRET_KEY" >> local.properties
+          fi
+
+      - name: Build release APK and app bundle
+        run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease
+
+      - name: Verify packages and signing certificates
+        env:
+          EXPECTED_SHA256: ${{ steps.signing.outputs.expected_sha256 }}
+        run: bash .github/scripts/verify_release_artifacts.sh
+
+      - name: Upload APK release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: biblelib-release-apk
+          path: |
+            out/BibleLib_${{ needs.check-version.outputs.version_name }}.apk
+            out/BibleLib_${{ needs.check-version.outputs.version_name }}.apk.info.txt
+          if-no-files-found: error
+
+      - name: Upload Play Store app bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: biblelib-play-aab
+          path: out/BibleLib_${{ needs.check-version.outputs.version_name }}.aab
+          if-no-files-found: error
+
+      - name: Remove signing material
+        if: always()
+        run: |
+          rm -f app/keystore/key.properties app/keystore/release.jks local.properties
+
+  publish-play:
+    name: Publish AAB to Google Play
+    needs:
+      - check-version
+      - build-release
+    if: >
+      github.ref == 'refs/heads/main' &&
+      needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download app bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: biblelib-play-aab
+          path: artifacts
+
+      - name: Publish production release
+        uses: r0adkll/upload-google-play@v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.biblelib
+          releaseFiles: artifacts/BibleLib_${{ needs.check-version.outputs.version_name }}.aab
+          tracks: production
+          status: completed
+          releaseName: BibleLib ${{ needs.check-version.outputs.version_name }}
+
+  publish-github:
+    name: Publish APK to GitHub Releases
+    needs:
+      - check-version
+      - build-release
+      - publish-play
+    if: >
+      github.ref == 'refs/heads/main' &&
+      needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: biblelib-release-apk
+          path: artifacts
+
+      - name: Generate checksum
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_NAME: ${{ needs.check-version.outputs.version_name }}
+        run: bash .github/scripts/create_release_notes.sh
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check-version.outputs.version_name }}
+          target_commitish: ${{ github.sha }}
+          name: BibleLib v${{ needs.check-version.outputs.version_name }}
+          body_path: release-notes.md
+          files: artifacts/*
