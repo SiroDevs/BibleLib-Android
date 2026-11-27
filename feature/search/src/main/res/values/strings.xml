@@ -1,0 +1,10 @@
+<resources>
+    <string name="search_back">Back</string>
+    <string name="search_clear">Clear</string>
+    <string name="search_clear_history">Clear</string>
+    <string name="search_placeholder">Search scriptures…</string>
+    <string name="search_no_results">No results for %1$s</string>
+    <string name="search_results_count">%1$d results</string>
+    <string name="search_history_prompt">Search the scriptures…</string>
+    <string name="search_recent_searches">Recent searches</string>
+</resources>

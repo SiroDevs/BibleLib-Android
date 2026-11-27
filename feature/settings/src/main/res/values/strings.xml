@@ -1,0 +1,22 @@
+<resources>
+    <string name="settings_title">BibleLib: Multi-Bible Reader</string>
+    <string name="settings_more">More</string>
+    <string name="settings_reset_app_data">Reset App Data</string>
+    <string name="settings_preferences_group">Preferences</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_summary">Theme, reader background</string>
+    <string name="settings_reading">Reading</string>
+    <string name="settings_reading_summary">Font, size</string>
+    <string name="settings_bibles_group">BIBLES</string>
+    <string name="settings_manage_bibles">Manage Bibles</string>
+    <string name="settings_manage_bibles_summary">Primary and Secondary Bibles</string>
+    <string name="settings_support_group">SUPPORT SECTION</string>
+    <string name="settings_donate">Donate to BibleLib</string>
+    <string name="settings_donate_summary">BibleLib appreciates your support</string>
+    <string name="settings_help">Help &amp; Support</string>
+    <string name="settings_help_summary">Submit a Complaint or Compliment</string>
+    <string name="settings_user_manual_group">USER MANUAL</string>
+    <string name="settings_how_it_works">How It Works</string>
+    <string name="settings_how_it_works_summary">Learn about the features of BibleLib</string>
+    <string name="settings_also_by">Also by Siro Devs</string>
+</resources>

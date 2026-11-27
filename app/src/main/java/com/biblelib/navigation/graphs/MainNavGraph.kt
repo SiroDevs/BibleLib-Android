@@ -10,6 +10,7 @@ import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.viewmodel.MainViewModel
+import com.biblelib.core.ui.utils.AdaptiveWindowInfo
 import com.biblelib.feature.bibles.view.screens.BiblesScreen
 import com.biblelib.feature.bibles.viewmodel.BiblesViewModel
 import com.biblelib.feature.bookmark_notes.view.BookmarkNotesScreen
@@ -25,11 +26,13 @@ import com.biblelib.feature.reader.notes.viewmodel.NotesViewModel
 import com.biblelib.feature.selection.view.screen.SelectionScreen
 import com.biblelib.feature.selection.viewmodel.SelectionViewModel
 
+// Registers reading and library destinations with the current window context.
 fun NavGraphBuilder.mainGraph(
     navController: NavHostController,
     themeRepo: ThemeRepo,
     prefsRepo: PrefsRepo,
     mainViewModel: MainViewModel,
+    adaptiveWindowInfo: AdaptiveWindowInfo,
 ) {
     composable(Routes.SELECTION) {
         val viewModel: SelectionViewModel = hiltViewModel()
@@ -69,6 +72,7 @@ fun NavGraphBuilder.mainGraph(
             initialSearchQry = searchQuery,
             themeRepo = themeRepo,
             prefsRepo = prefsRepo,
+            adaptiveWindowInfo = adaptiveWindowInfo,
         )
     }
 

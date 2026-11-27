@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,7 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,10 +42,14 @@ import com.biblelib.feature.history.viewmodel.HistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.layout.CenteredContentFrame
+import com.biblelib.feature.history.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+// Shows reading and search history with navigation back to matching content.
 @Composable
 fun HistoryScreen(
     navController: NavController,
@@ -57,7 +61,7 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "History",
+                title = stringResource(R.string.history_title),
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
                 actions = {
@@ -65,31 +69,39 @@ fun HistoryScreen(
                         if (activeTab == 0) viewModel.clearReadingHistory()
                         else viewModel.clearSearchHistory()
                     }) {
-                        Icon(Icons.Default.DeleteSweep, "Clear",
+                        Icon(Icons.Default.DeleteSweep, stringResource(R.string.history_clear),
                             tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
             )
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = activeTab) {
-                Tab(selected = activeTab == 0, onClick = { activeTab = 0 },
-                    text = { Text("Reading") })
-                Tab(selected = activeTab == 1, onClick = { activeTab = 1 },
-                    text = { Text("Searches") })
-            }
+        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+            Column(Modifier.fillMaxSize()) {
+                PrimaryTabRow(selectedTabIndex = activeTab) {
+                    Tab(
+                        selected = activeTab == 0,
+                        onClick = { activeTab = 0 },
+                        text = { Text(stringResource(R.string.history_reading_tab)) },
+                    )
+                    Tab(
+                        selected = activeTab == 1,
+                        onClick = { activeTab = 1 },
+                        text = { Text(stringResource(R.string.history_searches_tab)) },
+                    )
+                }
 
-            when (activeTab) {
-                0 -> ReadingHistoryTab(
-                    groups    = state.readingHistory,
-                    isLoading = state.isLoading,
-                    navController = navController,
-                )
-                1 -> SearchHistoryTab(
-                    history   = state.searchHistory,
-                    isLoading = state.isLoading,
-                )
+                when (activeTab) {
+                    0 -> ReadingHistoryTab(
+                        groups = state.readingHistory,
+                        isLoading = state.isLoading,
+                        navController = navController,
+                    )
+                    1 -> SearchHistoryTab(
+                        history = state.searchHistory,
+                        isLoading = state.isLoading,
+                    )
+                }
             }
         }
     }
@@ -106,7 +118,10 @@ private fun ReadingHistoryTab(groups: List<HistoryGroup>, isLoading: Boolean, na
     }
     if (groups.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No reading history yet.", color = MaterialTheme.colorScheme.onSurface.copy(0.4f))
+            Text(
+                stringResource(R.string.history_no_reading),
+                color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+            )
         }
         return
     }
@@ -157,7 +172,7 @@ private fun HistoryEntryItem(entry: HistoryEntity, onClick: () -> Unit) {
             )
         },
         leadingContent = {
-            Icon(Icons.Default.MenuBook, null,
+            Icon(Icons.AutoMirrored.Filled.MenuBook, null,
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
         },
         modifier = Modifier.clickable(onClick = onClick),
@@ -171,7 +186,10 @@ private fun SearchHistoryTab(history: List<com.biblelib.core.database.entities.S
     }
     if (history.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No searches yet.", color = MaterialTheme.colorScheme.onSurface.copy(0.4f))
+            Text(
+                stringResource(R.string.history_no_searches),
+                color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+            )
         }
         return
     }

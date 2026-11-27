@@ -1,32 +1,20 @@
 package com.biblelib.feature.bookmark_notes.view
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.StickyNote2
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,19 +23,19 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
-import com.biblelib.core.database.entities.BookmarkEntity
-import com.biblelib.core.database.entities.NoteEntity
 import com.biblelib.core.ui.components.action.AppTopBar
 import com.biblelib.core.ui.components.general.ConfirmDialog
+import com.biblelib.core.ui.components.layout.CenteredContentFrame
+import com.biblelib.feature.bookmark_notes.R
 import com.biblelib.feature.bookmark_notes.viewmodel.BookmarkNotesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
+// Manages saved bookmarks and notes with bulk selection actions.
 @Composable
 fun BookmarkNotesScreen(
     navController: NavController,
@@ -74,7 +62,11 @@ fun BookmarkNotesScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (isSelectionMode) "$selectedCount selected" else "Bookmarks & Notes",
+                title = if (isSelectionMode) {
+                    stringResource(R.string.bookmark_selected_count, selectedCount)
+                } else {
+                    stringResource(R.string.bookmark_notes_title)
+                },
                 showGoBack = true,
                 onNavIconClick = {
                     if (isSelectionMode) {
@@ -86,15 +78,22 @@ fun BookmarkNotesScreen(
                 actions = {
                     if (isSelectionMode) {
                         IconButton(onClick = { showDeleteSelectedDialog = true }) {
-                            Icon(Icons.Default.Delete, "Delete selected")
+                            Icon(Icons.Default.Delete, stringResource(R.string.bookmark_delete_selected))
                         }
                     } else {
                         IconButton(onClick = { showOverflowMenu = true }) {
-                            Icon(Icons.Default.MoreVert, "More")
+                            Icon(Icons.Default.MoreVert, stringResource(R.string.bookmark_more))
                         }
                         DropdownMenu(expanded = showOverflowMenu, onDismissRequest = { showOverflowMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text(if (activeTab == 0) "Clear all bookmarks" else "Clear all notes") },
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            if (activeTab == 0) R.string.bookmark_clear_all_bookmarks
+                                            else R.string.bookmark_clear_all_notes,
+                                        )
+                                    )
+                                },
                                 leadingIcon = { Icon(Icons.Default.DeleteSweep, null) },
                                 onClick = { showOverflowMenu = false; showClearAllDialog = true },
                             )
@@ -104,17 +103,18 @@ fun BookmarkNotesScreen(
             )
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = activeTab) {
+        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+            Column(Modifier.fillMaxSize()) {
+            PrimaryTabRow(selectedTabIndex = activeTab) {
                 Tab(
                     selected = activeTab == 0,
                     onClick = { activeTab = 0 },
-                    text = { Text("Bookmarks") },
+                    text = { Text(stringResource(R.string.bookmark_tab_bookmarks)) },
                 )
                 Tab(
                     selected = activeTab == 1,
                     onClick = { activeTab = 1 },
-                    text = { Text("Notes") },
+                    text = { Text(stringResource(R.string.bookmark_tab_notes)) },
                 )
             }
 
@@ -123,7 +123,6 @@ fun BookmarkNotesScreen(
                     bookmarks = state.bookmarks,
                     isLoading = state.isLoading,
                     selectedKeys = state.selectedBookmarkKeys,
-                    isSelectionMode = state.isBookmarkSelectionMode,
                     onTap = { item ->
                         if (state.isBookmarkSelectionMode) {
                             viewModel.toggleBookmarkSelection(item)
@@ -137,7 +136,6 @@ fun BookmarkNotesScreen(
                     notes = state.notes,
                     isLoading = state.isLoading,
                     selectedKeys = state.selectedNoteKeys,
-                    isSelectionMode = state.isNoteSelectionMode,
                     onTap = { item ->
                         if (state.isNoteSelectionMode) {
                             viewModel.toggleNoteSelection(item)
@@ -148,13 +146,14 @@ fun BookmarkNotesScreen(
                     onLongPress = viewModel::toggleNoteSelection,
                 )
             }
+            }
         }
     }
 
     if (showDeleteSelectedDialog) {
         ConfirmDialog(
-            title = "Delete selected?",
-            message = "This will permanently delete $selectedCount selected item(s). This can't be undone.",
+            title = stringResource(R.string.bookmark_delete_selected_title),
+            message = stringResource(R.string.bookmark_delete_selected_message, selectedCount),
             onConfirm = {
                 if (activeTab == 0) viewModel.deleteSelectedBookmarks() else viewModel.deleteSelectedNotes()
                 showDeleteSelectedDialog = false
@@ -165,109 +164,22 @@ fun BookmarkNotesScreen(
 
     if (showClearAllDialog) {
         ConfirmDialog(
-            title = if (activeTab == 0) "Clear all bookmarks?" else "Clear all notes?",
-            message = "This will permanently delete all your " +
-                    (if (activeTab == 0) "bookmarks" else "notes") + " across every Bible. This can't be undone.",
+            title = stringResource(
+                if (activeTab == 0) R.string.bookmark_clear_bookmarks_title
+                else R.string.bookmark_clear_notes_title,
+            ),
+            message = stringResource(
+                R.string.bookmark_clear_all_message,
+                stringResource(
+                    if (activeTab == 0) R.string.bookmark_bookmarks_word
+                    else R.string.bookmark_notes_word,
+                ),
+            ),
             onConfirm = {
                 if (activeTab == 0) viewModel.clearAllBookmarks() else viewModel.clearAllNotes()
                 showClearAllDialog = false
             },
             onDismiss = { showClearAllDialog = false },
         )
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BookmarksTab(
-    bookmarks: List<BookmarkEntity>,
-    isLoading: Boolean,
-    selectedKeys: Set<String>,
-    isSelectionMode: Boolean,
-    onTap: (BookmarkEntity) -> Unit,
-    onLongPress: (BookmarkEntity) -> Unit,
-) {
-    if (isLoading) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        return
-    }
-    if (bookmarks.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No bookmarks yet.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-        }
-        return
-    }
-    LazyColumn {
-        items(bookmarks, key = { "${it.bibleAbbr}|${it.verseId}" }) { item ->
-            val key = "${item.bibleAbbr}|${item.verseId}"
-            val selected = key in selectedKeys
-            ListItem(
-                headlineContent = { Text("${item.bookId} — ${item.chapterId.substringAfter(".")}") },
-                supportingContent = { Text(item.bibleAbbr.uppercase(), style = MaterialTheme.typography.labelSmall) },
-                leadingContent = {
-                    Icon(
-                        Icons.Default.Bookmark,
-                        null,
-                        tint = item.colorHex?.let { runCatching { Color(android.graphics.Color.parseColor(it)) }.getOrNull() }
-                            ?: MaterialTheme.colorScheme.primary,
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(onClick = { onTap(item) }, onLongClick = { onLongPress(item) }),
-                colors = if (selected) {
-                    androidx.compose.material3.ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                } else androidx.compose.material3.ListItemDefaults.colors(),
-            )
-            HorizontalDivider(thickness = 0.5.dp)
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun NotesTab(
-    notes: List<NoteEntity>,
-    isLoading: Boolean,
-    selectedKeys: Set<String>,
-    isSelectionMode: Boolean,
-    onTap: (NoteEntity) -> Unit,
-    onLongPress: (NoteEntity) -> Unit,
-) {
-    if (isLoading) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        return
-    }
-    if (notes.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No notes yet.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-        }
-        return
-    }
-    LazyColumn {
-        items(notes, key = { "${it.bibleAbbr}|${it.verseId}" }) { item ->
-            val key = "${item.bibleAbbr}|${item.verseId}"
-            val selected = key in selectedKeys
-            ListItem(
-                headlineContent = { Text(item.title.ifBlank { item.verseText.take(40) }) },
-                supportingContent = {
-                    Text(
-                        item.noteText,
-                        maxLines = 2,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                },
-                leadingContent = {
-                    Icon(Icons.Default.StickyNote2, null, tint = MaterialTheme.colorScheme.primary)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(onClick = { onTap(item) }, onLongClick = { onLongPress(item) }),
-                colors = if (selected) {
-                    androidx.compose.material3.ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                } else androidx.compose.material3.ListItemDefaults.colors(),
-            )
-            HorizontalDivider(thickness = 0.5.dp)
-        }
     }
 }

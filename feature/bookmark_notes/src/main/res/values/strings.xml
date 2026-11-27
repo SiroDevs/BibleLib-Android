@@ -1,0 +1,19 @@
+<resources>
+    <string name="bookmark_notes_title">Bookmarks &amp; Notes</string>
+    <string name="bookmark_selected_count">%1$d selected</string>
+    <string name="bookmark_delete_selected">Delete selected</string>
+    <string name="bookmark_more">More</string>
+    <string name="bookmark_clear_all_bookmarks">Clear all bookmarks</string>
+    <string name="bookmark_clear_all_notes">Clear all notes</string>
+    <string name="bookmark_tab_bookmarks">Bookmarks</string>
+    <string name="bookmark_tab_notes">Notes</string>
+    <string name="bookmark_delete_selected_title">Delete selected?</string>
+    <string name="bookmark_delete_selected_message">This will permanently delete %1$d selected item(s). This can\'t be undone.</string>
+    <string name="bookmark_clear_bookmarks_title">Clear all bookmarks?</string>
+    <string name="bookmark_clear_notes_title">Clear all notes?</string>
+    <string name="bookmark_clear_all_message">This will permanently delete all your %1$s across every Bible. This can\'t be undone.</string>
+    <string name="bookmark_bookmarks_word">bookmarks</string>
+    <string name="bookmark_notes_word">notes</string>
+    <string name="bookmark_no_bookmarks">No bookmarks yet.</string>
+    <string name="bookmark_no_notes">No notes yet.</string>
+</resources>
