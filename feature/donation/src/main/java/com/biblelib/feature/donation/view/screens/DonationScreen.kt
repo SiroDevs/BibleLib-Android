@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 fun DonationScreen(
     navController: NavHostController,
     viewModel: DonationViewModel,
+    showGoBack: Boolean = true,
 ) {
     var selectedMethod by remember { mutableStateOf(DonationMethod.DIY) }
 
@@ -49,7 +50,7 @@ fun DonationScreen(
         topBar = {
             AppTopBar(
                 title = "Donate to BibleLib",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() },
             )
         },

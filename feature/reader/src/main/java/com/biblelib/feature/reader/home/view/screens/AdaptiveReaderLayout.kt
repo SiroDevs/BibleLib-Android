@@ -72,6 +72,7 @@ fun AdaptiveReaderLayout(
                 onBookClick = onBookClick,
                 bookSwitchEnabled = !state.isScriptureModeActive,
                 onBookSwitchBlocked = onBookSwitchBlocked,
+                isAdaptiveLayout = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT,
             )
         },
         bottomBar = {

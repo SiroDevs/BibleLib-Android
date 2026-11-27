@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
@@ -30,6 +31,12 @@ fun PrimaryNavigationRail(
     val destinations = listOf(
         PrimaryDestination(Routes.reader(), Routes.READER, Icons.AutoMirrored.Filled.MenuBook, R.string.navigation_read),
         PrimaryDestination(Routes.SEARCH, Routes.SEARCH, Icons.Default.Search, R.string.navigation_search),
+        PrimaryDestination(
+            Routes.SCRIPTURE_LISTS,
+            Routes.SCRIPTURE_LISTS,
+            Icons.AutoMirrored.Filled.ListAlt,
+            R.string.navigation_scripture_lists,
+        ),
         PrimaryDestination(Routes.HISTORY, Routes.HISTORY, Icons.Default.History, R.string.navigation_history),
         PrimaryDestination(
             Routes.BOOKMARKS_NOTES,
@@ -40,12 +47,13 @@ fun PrimaryNavigationRail(
         PrimaryDestination(Routes.SETTINGS, Routes.SETTINGS, Icons.Default.Settings, R.string.navigation_settings),
     )
     val activeRoute = when (currentDestination?.route) {
-        Routes.SEARCH, Routes.SCRIPTURE_OPENER, Routes.SCRIPTURE_LISTS,
-        Routes.SCRIPTURE_LIST_DETAIL -> Routes.SEARCH
+        Routes.SEARCH, Routes.SCRIPTURE_OPENER -> Routes.SEARCH
+        Routes.SCRIPTURE_LISTS, Routes.SCRIPTURE_LIST_DETAIL -> Routes.SCRIPTURE_LISTS
         Routes.HISTORY -> Routes.HISTORY
         Routes.BOOKMARKS_NOTES -> Routes.BOOKMARKS_NOTES
         Routes.SETTINGS, Routes.APPEARANCE_SETTINGS, Routes.READING_SETTINGS,
-        Routes.DATA_SETTINGS -> Routes.SETTINGS
+        Routes.DATA_SETTINGS, Routes.BIBLES, Routes.DONATION, Routes.HELP,
+        Routes.HOW_IT_WORKS -> Routes.SETTINGS
         else -> Routes.READER
     }
 

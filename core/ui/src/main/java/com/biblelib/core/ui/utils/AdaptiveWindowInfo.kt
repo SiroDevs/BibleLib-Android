@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.HEIGHT_DP_MEDIUM_LOWER_BOUND
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_LARGE_LOWER_BOUND
@@ -31,14 +33,12 @@ data class AdaptiveWindowInfo(
     val horizontalHingeClearance: Dp,
 )
 
-@Composable
-// Reads current window size and separating hinge information.
-fun rememberAdaptiveWindowInfo(): AdaptiveWindowInfo {
-    val adaptiveInfo = currentWindowAdaptiveInfoV2()
-    val density = LocalDensity.current
-    val windowSizeClass = adaptiveInfo.windowSizeClass
-    val posture = adaptiveInfo.windowPosture
-    val widthClass = when {
+// Maps window size to a width class; short windows such as phone landscape stay compact
+private fun resolveAdaptiveWidthClass(windowSizeClass: WindowSizeClass): AdaptiveWidthClass {
+    if (!windowSizeClass.isHeightAtLeastBreakpoint(HEIGHT_DP_MEDIUM_LOWER_BOUND)) {
+        return AdaptiveWidthClass.COMPACT
+    }
+    return when {
         windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_EXTRA_LARGE_LOWER_BOUND) ->
             AdaptiveWidthClass.EXTRA_LARGE
 
@@ -53,6 +53,16 @@ fun rememberAdaptiveWindowInfo(): AdaptiveWindowInfo {
 
         else -> AdaptiveWidthClass.COMPACT
     }
+}
+
+@Composable
+// Reads current window size and separating hinge information.
+fun rememberAdaptiveWindowInfo(): AdaptiveWindowInfo {
+    val adaptiveInfo = currentWindowAdaptiveInfoV2()
+    val density = LocalDensity.current
+    val windowSizeClass = adaptiveInfo.windowSizeClass
+    val posture = adaptiveInfo.windowPosture
+    val widthClass = resolveAdaptiveWidthClass(windowSizeClass)
     val verticalHingeBounds = posture.separatingVerticalHingeBounds
     val horizontalHingeBounds = posture.separatingHorizontalHingeBounds
     val verticalHingeGutter = verticalHingeBounds.maxOfOrNull { hinge ->

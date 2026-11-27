@@ -57,6 +57,7 @@ fun ReaderTopBar(
     onBookClick: () -> Unit,
     bookSwitchEnabled: Boolean = true,
     onBookSwitchBlocked: () -> Unit = {},
+    isAdaptiveLayout: Boolean = false,
 ) {
     if (state.isSelectionMode) {
         ReaderSelectionBar(
@@ -117,50 +118,52 @@ fun ReaderTopBar(
             IconButton(onClick = { navController.navigate(Routes.SEARCH) }) {
                 Icon(Icons.Default.Search, "Search")
             }
-            IconButton(onClick = { showMoreMenu = true }) {
-                Icon(Icons.Default.MoreVert, "More")
-            }
-            DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
-                DropdownMenuItem(
-                    text = { Text("Cast to PC/Devices") },
-                    leadingIcon = { Icon(Icons.Default.Cast, null) },
-                    onClick = {
-                        showMoreMenu = false
-                        navController.navigate(Routes.CASTING)
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text("Scripture Lists") },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.ListAlt, null) },
-                    onClick = {
-                        showMoreMenu = false
-                        navController.navigate(Routes.SCRIPTURE_LISTS)
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text("Bookmarks & Notes") },
-                    leadingIcon = { Icon(Icons.Default.Bookmarks, null) },
-                    onClick = {
-                        showMoreMenu = false
-                        navController.navigate(Routes.BOOKMARKS_NOTES)
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text("View History") },
-                    leadingIcon = { Icon(Icons.Default.History, null) },
-                    onClick = {
-                        showMoreMenu = false
-                        navController.navigate(Routes.HISTORY)
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text("Manage Settings") },
-                    leadingIcon = { Icon(Icons.Default.Settings, null) },
-                    onClick = {
-                        showMoreMenu = false
-                        navController.navigate(Routes.SETTINGS)
-                    },
-                )
+            if (!isAdaptiveLayout) {
+                IconButton(onClick = { showMoreMenu = true }) {
+                    Icon(Icons.Default.MoreVert, "More")
+                }
+                DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Cast to PC/Devices") },
+                        leadingIcon = { Icon(Icons.Default.Cast, null) },
+                        onClick = {
+                            showMoreMenu = false
+                            navController.navigate(Routes.CASTING)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Scripture Lists") },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.ListAlt, null) },
+                        onClick = {
+                            showMoreMenu = false
+                            navController.navigate(Routes.SCRIPTURE_LISTS)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Bookmarks & Notes") },
+                        leadingIcon = { Icon(Icons.Default.Bookmarks, null) },
+                        onClick = {
+                            showMoreMenu = false
+                            navController.navigate(Routes.BOOKMARKS_NOTES)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("View History") },
+                        leadingIcon = { Icon(Icons.Default.History, null) },
+                        onClick = {
+                            showMoreMenu = false
+                            navController.navigate(Routes.HISTORY)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Manage Settings") },
+                        leadingIcon = { Icon(Icons.Default.Settings, null) },
+                        onClick = {
+                            showMoreMenu = false
+                            navController.navigate(Routes.SETTINGS)
+                        },
+                    )
+                }
             }
         },
         navigationIcon = {

@@ -45,6 +45,7 @@ fun SettingsSplitPane(
     themeRepo: ThemeRepo,
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
+    additionalDetailContent: @Composable (String) -> Unit,
 ) {
     var selectedDetail by rememberSaveable { mutableStateOf(Routes.APPEARANCE_SETTINGS) }
     val hasHinge = adaptiveWindowInfo.hasVerticalSeparatingHinge
@@ -90,7 +91,8 @@ fun SettingsSplitPane(
                     icon = Icons.Default.Palette,
                     title = stringResource(R.string.settings_manage_bibles),
                     subtitle = stringResource(R.string.settings_manage_bibles_summary),
-                    onClick = { navController.navigate(Routes.BIBLES) },
+                    selected = selectedDetail == Routes.BIBLES,
+                    onClick = { selectedDetail = Routes.BIBLES },
                 )
             }
             item { SettingsGroupLabel(stringResource(R.string.settings_support_group)) }
@@ -99,7 +101,8 @@ fun SettingsSplitPane(
                     icon = Icons.Default.MonetizationOn,
                     title = stringResource(R.string.settings_donate),
                     subtitle = stringResource(R.string.settings_donate_summary),
-                    onClick = { navController.navigate(Routes.DONATION) },
+                    selected = selectedDetail == Routes.DONATION,
+                    onClick = { selectedDetail = Routes.DONATION },
                 )
             }
             item {
@@ -107,7 +110,8 @@ fun SettingsSplitPane(
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
                     title = stringResource(R.string.settings_help),
                     subtitle = stringResource(R.string.settings_help_summary),
-                    onClick = { navController.navigate(Routes.HELP) },
+                    selected = selectedDetail == Routes.HELP,
+                    onClick = { selectedDetail = Routes.HELP },
                 )
             }
             item { SettingsGroupLabel(stringResource(R.string.settings_user_manual_group)) }
@@ -116,7 +120,8 @@ fun SettingsSplitPane(
                     icon = Icons.Default.Info,
                     title = stringResource(R.string.settings_how_it_works),
                     subtitle = stringResource(R.string.settings_how_it_works_summary),
-                    onClick = { navController.navigate(Routes.HOW_IT_WORKS) },
+                    selected = selectedDetail == Routes.HOW_IT_WORKS,
+                    onClick = { selectedDetail = Routes.HOW_IT_WORKS },
                 )
             }
             item { SettingsGroupLabel(stringResource(R.string.settings_also_by)) }
@@ -142,12 +147,13 @@ fun SettingsSplitPane(
                     settViewModel = settingsViewModel,
                     showGoBack = false,
                 )
-                else -> AppearanceSettingsScreen(
+                Routes.APPEARANCE_SETTINGS -> AppearanceSettingsScreen(
                     navController = navController,
                     settViewModel = settingsViewModel,
                     themeRepo = themeRepo,
                     showGoBack = false,
                 )
+                else -> additionalDetailContent(selectedDetail)
             }
         }
     }

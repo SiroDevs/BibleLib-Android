@@ -54,12 +54,17 @@ fun BookmarkNotesScreen(
     val isSelectionMode = if (activeTab == 0) state.isBookmarkSelectionMode else state.isNoteSelectionMode
     val selectedCount = if (activeTab == 0) state.selectedBookmarkKeys.size else state.selectedNoteKeys.size
 
-    fun openInReader(bibleAbbr: String, bookId: String, chapterId: String) {
+    fun openInReader(bibleAbbr: String, bookId: String, chapterId: String, verseId: String) {
         if (onOpenInReader != null) {
-            onOpenInReader(bibleAbbr, bookId, chapterId, "", "")
+            onOpenInReader(bibleAbbr, bookId, chapterId, verseId, "")
         } else {
             navController.navigate(
-                Routes.reader(bibleAbbr = bibleAbbr, bookId = bookId, chapterId = chapterId)
+                Routes.reader(
+                    bibleAbbr = bibleAbbr,
+                    bookId = bookId,
+                    chapterId = chapterId,
+                    verseId = verseId,
+                )
             ) {
                 popUpTo(Routes.READER) { inclusive = true }
                 launchSingleTop = true
@@ -150,7 +155,7 @@ fun BookmarkNotesScreen(
                         if (state.isBookmarkSelectionMode) {
                             viewModel.toggleBookmarkSelection(item)
                         } else {
-                            openInReader(item.bibleAbbr, item.bookId, item.chapterId)
+                            openInReader(item.bibleAbbr, item.bookId, item.chapterId, item.verseId)
                         }
                     },
                     onLongPress = viewModel::toggleBookmarkSelection,
@@ -163,7 +168,7 @@ fun BookmarkNotesScreen(
                         if (state.isNoteSelectionMode) {
                             viewModel.toggleNoteSelection(item)
                         } else {
-                            openInReader(item.bibleAbbr, item.bookId, item.chapterId)
+                            openInReader(item.bibleAbbr, item.bookId, item.chapterId, item.verseId)
                         }
                     },
                     onLongPress = viewModel::toggleNoteSelection,

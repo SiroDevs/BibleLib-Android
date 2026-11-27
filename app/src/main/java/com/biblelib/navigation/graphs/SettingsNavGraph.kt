@@ -8,6 +8,12 @@ import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.viewmodel.MainViewModel
 import com.biblelib.core.ui.utils.AdaptiveWindowInfo
+import com.biblelib.feature.bibles.view.screens.BiblesScreen
+import com.biblelib.feature.bibles.viewmodel.BiblesViewModel
+import com.biblelib.feature.donation.view.screens.DonationScreen
+import com.biblelib.feature.donation.viewmodel.DonationViewModel
+import com.biblelib.feature.help.view.HelpScreen
+import com.biblelib.feature.how_it_works.view.HowItWorksScreen
 import com.biblelib.feature.settings.view.screen.AppearanceSettingsScreen
 import com.biblelib.feature.settings.view.screen.DataSettingsScreen
 import com.biblelib.feature.settings.view.screen.ReadingSettingsScreen
@@ -29,6 +35,30 @@ fun NavGraphBuilder.settingsGraph(
             themeRepo = themeRepo,
             mainViewModel = mainViewModel,
             settingsViewModel = settingsVm,
+            additionalDetailContent = { route ->
+                when (route) {
+                    Routes.BIBLES -> {
+                        val biblesVm: BiblesViewModel = hiltViewModel()
+                        BiblesScreen(
+                            navController = navController,
+                            mainViewModel = mainViewModel,
+                            viewModel = biblesVm,
+                            showGoBack = false,
+                        )
+                    }
+                    Routes.DONATION -> {
+                        val donationVm: DonationViewModel = hiltViewModel()
+                        DonationScreen(
+                            navController = navController,
+                            viewModel = donationVm,
+                            showGoBack = false,
+                        )
+                    }
+                    Routes.HELP -> HelpScreen(navController = navController, showGoBack = false)
+                    Routes.HOW_IT_WORKS -> HowItWorksScreen(navController = navController, showGoBack = false)
+                    else -> Unit
+                }
+            },
         )
     }
 

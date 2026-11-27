@@ -1,0 +1,25 @@
+<resources>
+    <string name="help_title">Help &amp; Feedback</string>
+    <string name="help_form_title">Title *</string>
+    <string name="help_title_placeholder">Brief summary of your issue or suggestion</string>
+    <string name="help_title_required">Title is required</string>
+    <string name="help_description">Description *</string>
+    <string name="help_description_placeholder">Describe the issue or your suggestion in detail...</string>
+    <string name="help_description_required">Description is required</string>
+    <string name="help_attachments_title">Screenshots or Recordings (optional)</string>
+    <string name="help_attachment_add">Tap to attach images</string>
+    <string name="help_attachment_limit">Up to %1$d files</string>
+    <string name="help_attachment_default_name">attachment_%1$d</string>
+    <string name="help_attachment_remove">Remove</string>
+    <string name="help_contact_us">Contact Us</string>
+    <string name="help_intro_title">We’re here to help!</string>
+    <string name="help_intro_summary">If you are experiencing any issues or have suggestions, you can contact us or get help. Fill in the form below and we’ll get back to you.</string>
+    <string name="help_email_separator">---</string>
+    <string name="help_email_device_info">Device Info:</string>
+    <string name="help_email_model">Model: %1$s (%2$s)</string>
+    <string name="help_email_android">Android: %1$s (API %2$d)</string>
+    <string name="help_email_title">Title: %1$s</string>
+    <string name="help_email_description">Description:</string>
+    <string name="help_email_subject">BibleLib: %1$s</string>
+    <string name="help_email_chooser">Send email via</string>
+</resources>

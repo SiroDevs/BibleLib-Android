@@ -52,6 +52,7 @@ fun SettingsScreen(
     themeRepo: ThemeRepo,
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
+    additionalDetailContent: @Composable (String) -> Unit = {},
 ) {
     val isAdaptive = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -90,6 +91,7 @@ fun SettingsScreen(
                     themeRepo = themeRepo,
                     mainViewModel = mainViewModel,
                     settingsViewModel = settingsViewModel,
+                    additionalDetailContent = additionalDetailContent,
                 )
             }
         } else CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {

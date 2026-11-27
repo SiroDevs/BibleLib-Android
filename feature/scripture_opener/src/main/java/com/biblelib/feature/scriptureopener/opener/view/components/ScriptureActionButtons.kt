@@ -33,8 +33,9 @@ fun ScriptureActionButtons(
     onAddToQueue: () -> Unit,
     onAddToQueueAndClose: () -> Unit,
     onAddToQueueAndFinish: () -> Unit,
+    isSplitPane: Boolean = false,
 ) {
-    val landscape = isLandscape()
+    val landscape = !isSplitPane && isLandscape()
     val openLabel = if (landscape) {
         stringResource(R.string.open_scripture_short)
     } else {
