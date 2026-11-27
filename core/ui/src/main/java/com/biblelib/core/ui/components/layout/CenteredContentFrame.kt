@@ -21,11 +21,12 @@ fun CenteredContentFrame(
     modifier: Modifier = Modifier,
     maxWidth: Dp = 840.dp,
     hasNavigationRail: Boolean = true,
+    respectVerticalHinge: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val windowInfo = rememberAdaptiveWindowInfo()
     BoxWithConstraints(modifier) {
-        if (windowInfo.hasVerticalSeparatingHinge) {
+        if (respectVerticalHinge && windowInfo.hasVerticalSeparatingHinge) {
             val railWidth = if (hasNavigationRail &&
                 windowInfo.widthClass >= AdaptiveWidthClass.MEDIUM
             ) 80.dp else 0.dp

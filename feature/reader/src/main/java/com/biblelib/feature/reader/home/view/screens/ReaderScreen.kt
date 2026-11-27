@@ -52,16 +52,19 @@ fun ReaderScreen(
     themeRepo: ThemeRepo,
     prefsRepo: PrefsRepo,
     adaptiveWindowInfo: AdaptiveWindowInfo,
+    initializeOnEntry: Boolean = true,
 ) {
     LaunchedEffect(Unit) {
-        viewModel.initialize(
-            initialBible,
-            initialBibleAbbr,
-            initialBookId,
-            initialChapterId,
-            initialVerseId,
-            initialSearchQry,
-        )
+        if (initializeOnEntry) {
+            viewModel.initialize(
+                initialBible,
+                initialBibleAbbr,
+                initialBookId,
+                initialChapterId,
+                initialVerseId,
+                initialSearchQry,
+            )
+        }
     }
 
     val state by viewModel.uiState.collectAsState()

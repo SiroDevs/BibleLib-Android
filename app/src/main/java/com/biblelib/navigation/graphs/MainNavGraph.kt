@@ -33,6 +33,7 @@ fun NavGraphBuilder.mainGraph(
     prefsRepo: PrefsRepo,
     mainViewModel: MainViewModel,
     adaptiveWindowInfo: AdaptiveWindowInfo,
+    onExpand: (() -> Unit)?,
 ) {
     composable(Routes.SELECTION) {
         val viewModel: SelectionViewModel = hiltViewModel()
@@ -112,6 +113,7 @@ fun NavGraphBuilder.mainGraph(
         HistoryScreen(
             navController = navController,
             viewModel = viewModel,
+            onExpand = onExpand,
         )
     }
 
@@ -120,6 +122,7 @@ fun NavGraphBuilder.mainGraph(
         BookmarkNotesScreen(
             navController = navController,
             viewModel = viewModel,
+            onExpand = onExpand,
         )
     }
 

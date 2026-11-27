@@ -36,6 +36,7 @@ import androidx.navigation.NavHostController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.database.entities.ScriptureItemEntity
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.general.QuickFormDialog
 import com.biblelib.feature.scripture_opener.lists.viewmodel.ScriptureListDetailViewModel
 
@@ -45,6 +46,7 @@ fun ScriptureListDetailScreen(
     navController: NavHostController,
     viewModel: ScriptureListDetailViewModel,
     listId: Long,
+    onExpand: (() -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     var isRenaming by remember { mutableStateOf(false) }
@@ -64,6 +66,7 @@ fun ScriptureListDetailScreen(
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
                 actions = {
+                    onExpand?.let { ExpandScreenAction(it) }
                     if (!state.isLoading && state.items.isNotEmpty()) {
                         IconButton(onClick = { isRenaming = true }) {
                             Icon(Icons.Default.Edit, contentDescription = "Rename list")

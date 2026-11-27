@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.general.ConfirmDialog
 import com.biblelib.core.ui.components.layout.CenteredContentFrame
 import com.biblelib.feature.bookmark_notes.R
@@ -40,6 +41,7 @@ import com.biblelib.feature.bookmark_notes.viewmodel.BookmarkNotesViewModel
 fun BookmarkNotesScreen(
     navController: NavController,
     viewModel: BookmarkNotesViewModel,
+    onExpand: (() -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     var activeTab by remember { mutableIntStateOf(0) }
@@ -76,6 +78,7 @@ fun BookmarkNotesScreen(
                     }
                 },
                 actions = {
+                    onExpand?.let { ExpandScreenAction(it) }
                     if (isSelectionMode) {
                         IconButton(onClick = { showDeleteSelectedDialog = true }) {
                             Icon(Icons.Default.Delete, stringResource(R.string.bookmark_delete_selected))
@@ -103,7 +106,10 @@ fun BookmarkNotesScreen(
             )
         }
     ) { padding ->
-        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+        CenteredContentFrame(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            respectVerticalHinge = false,
+        ) {
             Column(Modifier.fillMaxSize()) {
             PrimaryTabRow(selectedTabIndex = activeTab) {
                 Tab(

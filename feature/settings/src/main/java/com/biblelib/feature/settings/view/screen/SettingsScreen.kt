@@ -1,6 +1,7 @@
 package com.biblelib.feature.settings.view.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,15 +33,27 @@ import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
 import com.biblelib.core.ui.components.layout.CenteredContentFrame
+import com.biblelib.core.data.repos.ThemeRepo
+import com.biblelib.core.ui.utils.AdaptiveWidthClass
+import com.biblelib.core.ui.utils.AdaptiveWindowInfo
+import com.biblelib.core.ui.viewmodel.MainViewModel
 import com.biblelib.feature.settings.view.components.AlsoBySiroApps
 import com.biblelib.feature.settings.view.components.SettingsGroupLabel
 import com.biblelib.feature.settings.view.components.SettingsNavRow
+import com.biblelib.feature.settings.viewmodel.SettingsViewModel
 import com.biblelib.feature.settings.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 // Lists app settings and related BibleLib destinations.
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    adaptiveWindowInfo: AdaptiveWindowInfo,
+    themeRepo: ThemeRepo,
+    mainViewModel: MainViewModel,
+    settingsViewModel: SettingsViewModel,
+) {
+    val isAdaptive = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT
     var showMoreMenu by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -50,24 +63,36 @@ fun SettingsScreen(navController: NavController) {
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
                 actions = {
-                    IconButton(onClick = { showMoreMenu = true }) {
-                        Icon(Icons.Default.MoreVert, stringResource(R.string.settings_more))
-                    }
-                    DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.settings_reset_app_data)) },
-                            leadingIcon = { Icon(Icons.Default.DataUsage, null) },
-                            onClick = {
-                                showMoreMenu = false
-                                navController.navigate(Routes.DATA_SETTINGS)
-                            },
-                        )
+                    if (!isAdaptive) {
+                        IconButton(onClick = { showMoreMenu = true }) {
+                            Icon(Icons.Default.MoreVert, stringResource(R.string.settings_more))
+                        }
+                        DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.settings_reset_app_data)) },
+                                leadingIcon = { Icon(Icons.Default.DataUsage, null) },
+                                onClick = {
+                                    showMoreMenu = false
+                                    navController.navigate(Routes.DATA_SETTINGS)
+                                },
+                            )
+                        }
                     }
                 }
             )
         }
     ) { padding ->
-        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+        if (isAdaptive) {
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                SettingsSplitPane(
+                    navController = navController,
+                    adaptiveWindowInfo = adaptiveWindowInfo,
+                    themeRepo = themeRepo,
+                    mainViewModel = mainViewModel,
+                    settingsViewModel = settingsViewModel,
+                )
+            }
+        } else CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),

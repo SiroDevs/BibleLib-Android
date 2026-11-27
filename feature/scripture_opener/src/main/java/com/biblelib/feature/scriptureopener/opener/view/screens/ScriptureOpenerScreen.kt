@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.feature.scripture_opener.opener.view.components.ScriptureSearch
 import com.biblelib.feature.scripture_opener.opener.viewmodel.ScriptureOpenerViewModel
 
@@ -33,6 +34,7 @@ fun ScriptureOpenerScreen(
     viewModel: ScriptureOpenerViewModel,
     bibleAbbr: String,
     bibleName: String,
+    onExpand: (() -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -62,6 +64,7 @@ fun ScriptureOpenerScreen(
                 tagline = bibleName,
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
+                actions = { onExpand?.let { ExpandScreenAction(it) } },
             )
         }
     ) { padding ->

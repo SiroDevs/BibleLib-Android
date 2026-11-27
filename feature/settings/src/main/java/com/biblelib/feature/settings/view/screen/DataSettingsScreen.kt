@@ -43,6 +43,7 @@ fun DataSettingsScreen(
     navController: NavController,
     mainViewModel: MainViewModel,
     settViewModel: SettingsViewModel,
+    showGoBack: Boolean = true,
 ) {
     val pendingClear by settViewModel.pendingClear.collectAsState()
 
@@ -50,7 +51,7 @@ fun DataSettingsScreen(
         topBar = {
             AppTopBar(
                 title = "App Data",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() },
             )
         }

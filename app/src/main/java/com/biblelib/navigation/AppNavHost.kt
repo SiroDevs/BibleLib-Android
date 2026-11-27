@@ -1,28 +1,27 @@
 package com.biblelib.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.biblelib.R
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
@@ -46,6 +45,7 @@ fun AppNavHost(
     val isReady by mainViewModel.isReady.collectAsState()
     val destination by mainViewModel.destination.collectAsState()
     val adaptiveWindowInfo = rememberAdaptiveWindowInfo()
+    var expandedRoute by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (!isReady) return
 
@@ -56,104 +56,89 @@ fun AppNavHost(
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
-    val showNavigationRail = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT &&
-            currentDestination?.route != Routes.SELECTION
-
-    Row(Modifier.fillMaxSize()) {
-        if (showNavigationRail) {
-            PrimaryNavigationRail(
-                navController = navController,
-                currentDestination = currentDestination,
-            )
-        }
-
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.weight(1f),
-        ) {
-            mainGraph(
-                navController = navController,
-                themeRepo = themeRepo,
-                prefsRepo = prefsRepo,
-                mainViewModel = mainViewModel,
-                adaptiveWindowInfo = adaptiveWindowInfo,
-            )
-            settingsGraph(
-                navController = navController,
-                themeRepo = themeRepo,
-                mainViewModel = mainViewModel,
-            )
-            searchGraph(navController = navController)
-            miscGraph(
-                navController = navController,
-                prefsRepo = prefsRepo
-            )
-        }
+    val currentRoute = currentDestination?.route
+    LaunchedEffect(currentRoute) { expandedRoute = null }
+    val onExpandCurrentScreen: () -> Unit = {
+        navController.currentDestination?.route?.let { expandedRoute = it }
     }
-}
-
-@Composable
-// Provides top-level destinations on medium and wider windows.
-private fun PrimaryNavigationRail(
-    navController: NavHostController,
-    currentDestination: androidx.navigation.NavDestination?,
-) {
-    val destinations = listOf(
-        PrimaryDestination(
-            Routes.reader(), Routes.READER, Icons.AutoMirrored.Filled.MenuBook, R.string.navigation_read,
-        ),
-        PrimaryDestination(
-            Routes.SEARCH, Routes.SEARCH, Icons.Default.Search, R.string.navigation_search,
-        ),
-        PrimaryDestination(
-            Routes.HISTORY, Routes.HISTORY, Icons.Default.History, R.string.navigation_history,
-        ),
-        PrimaryDestination(
-            Routes.BOOKMARKS_NOTES,
-            Routes.BOOKMARKS_NOTES,
-            Icons.Default.Bookmarks,
-            R.string.navigation_bookmarks,
-        ),
-        PrimaryDestination(
-            Routes.SETTINGS, Routes.SETTINGS, Icons.Default.Settings,
-            R.string.navigation_settings,
-        ),
+    val isSettingsRoute = currentRoute in setOf(
+        Routes.SETTINGS, Routes.APPEARANCE_SETTINGS, Routes.READING_SETTINGS, Routes.DATA_SETTINGS,
     )
-    val activeRoute = when (currentDestination?.route) {
-        Routes.SEARCH, Routes.SCRIPTURE_OPENER -> Routes.SEARCH
+    val splitReaderRoute = currentRoute in setOf(
+        Routes.SEARCH, Routes.SCRIPTURE_OPENER, Routes.SCRIPTURE_LISTS, Routes.SCRIPTURE_LIST_DETAIL,
+        Routes.HISTORY, Routes.BOOKMARKS_NOTES,
+    )
+    val isExpanded = currentRoute != null && expandedRoute == currentRoute
+    val showNavigationRail = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT &&
+            currentDestination?.route != Routes.SELECTION && !isSettingsRoute && !isExpanded
+    val showReaderPane = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT &&
+            splitReaderRoute && !isExpanded
 
-        Routes.HISTORY -> Routes.HISTORY
-        Routes.BOOKMARKS_NOTES -> Routes.BOOKMARKS_NOTES
-        Routes.SETTINGS, Routes.APPEARANCE_SETTINGS, Routes.READING_SETTINGS,
-        Routes.DATA_SETTINGS -> Routes.SETTINGS
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val railWidth = if (showNavigationRail) 80.dp else 0.dp
+        val paneGap = when {
+            !showReaderPane -> 0.dp
+            adaptiveWindowInfo.hasVerticalSeparatingHinge -> adaptiveWindowInfo.verticalHingeGutter
+            else -> 1.dp
+        }
+        val availablePaneWidth = (maxWidth - railWidth - paneGap).coerceAtLeast(1.dp)
+        val leftPaneWidth = if (adaptiveWindowInfo.hasVerticalSeparatingHinge) {
+            (maxWidth / 2 - railWidth - paneGap / 2).coerceIn(1.dp, availablePaneWidth - 1.dp)
+        } else availablePaneWidth / 2
+        val leftPaneWeight = leftPaneWidth / availablePaneWidth
 
-        else -> Routes.READER
-    }
+        Row(Modifier.fillMaxSize()) {
+            if (showNavigationRail) {
+                PrimaryNavigationRail(
+                    navController = navController,
+                    currentDestination = currentDestination,
+                )
+            }
+            if (showReaderPane) {
+                AdaptiveReaderPane(
+                    navController = navController,
+                    themeRepo = themeRepo,
+                    prefsRepo = prefsRepo,
+                    adaptiveWindowInfo = adaptiveWindowInfo,
+                    modifier = Modifier.weight(leftPaneWeight),
+                )
+                if (adaptiveWindowInfo.hasVerticalSeparatingHinge) {
+                    Spacer(Modifier.width(paneGap))
+                } else {
+                    androidx.compose.material3.VerticalDivider(
+                        modifier = Modifier.fillMaxHeight().padding(vertical = 8.dp),
+                    )
+                }
+            }
 
-    NavigationRail {
-        destinations.forEach { destination ->
-            NavigationRailItem(
-                selected = destination.selectedRoute == activeRoute,
-                onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(Routes.READER) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                icon = { Icon(destination.icon, contentDescription = null) },
-                label = { androidx.compose.material3.Text(stringResource(destination.label)) },
-                alwaysShowLabel = true,
-            )
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier.weight(if (showReaderPane) 1f - leftPaneWeight else 1f),
+            ) {
+                mainGraph(
+                    navController = navController,
+                    themeRepo = themeRepo,
+                    prefsRepo = prefsRepo,
+                    mainViewModel = mainViewModel,
+                    adaptiveWindowInfo = adaptiveWindowInfo,
+                    onExpand = onExpandCurrentScreen.takeIf { showReaderPane },
+                )
+                settingsGraph(
+                    navController = navController,
+                    themeRepo = themeRepo,
+                    mainViewModel = mainViewModel,
+                    adaptiveWindowInfo = adaptiveWindowInfo,
+                )
+                searchGraph(
+                    navController = navController,
+                    onExpand = onExpandCurrentScreen.takeIf { showReaderPane },
+                )
+                miscGraph(
+                    navController = navController,
+                    prefsRepo = prefsRepo
+                )
+            }
         }
     }
 }
-
-// Describes one entry in the app's primary navigation rail.
-private data class PrimaryDestination(
-    val route: String,
-    val selectedRoute: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val label: Int,
-)

@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.layout.CenteredContentFrame
 import com.biblelib.feature.search.viewmodel.SearchViewModel
 import com.biblelib.feature.search.R
@@ -45,6 +46,7 @@ import com.biblelib.feature.search.view.components.SearchResultItem
 fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel,
+    onExpand: (() -> Unit)? = null,
 ) {
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
@@ -73,6 +75,7 @@ fun SearchScreen(
                             onClear = viewModel::clearQuery,
                         )
                     },
+                    actions = { onExpand?.let { ExpandScreenAction(it) } },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.onPrimary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -88,7 +91,10 @@ fun SearchScreen(
             }
         }
     ) { padding ->
-        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+        CenteredContentFrame(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            respectVerticalHinge = false,
+        ) {
             when {
                 isSearching -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()

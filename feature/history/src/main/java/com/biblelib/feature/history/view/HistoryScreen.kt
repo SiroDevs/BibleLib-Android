@@ -45,19 +45,19 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.layout.CenteredContentFrame
 import com.biblelib.feature.history.R
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 // Shows reading and search history with navigation back to matching content.
 @Composable
 fun HistoryScreen(
     navController: NavController,
     viewModel: HistoryViewModel,
+    onExpand: (() -> Unit)? = null,
 ) {
     val state   by viewModel.uiState.collectAsState()
     var activeTab by remember { mutableIntStateOf(0) }
-
     Scaffold(
         topBar = {
             AppTopBar(
@@ -65,6 +65,7 @@ fun HistoryScreen(
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
                 actions = {
+                    onExpand?.let { ExpandScreenAction(it) }
                     IconButton(onClick = {
                         if (activeTab == 0) viewModel.clearReadingHistory()
                         else viewModel.clearSearchHistory()
@@ -76,7 +77,10 @@ fun HistoryScreen(
             )
         }
     ) { padding ->
-        CenteredContentFrame(Modifier.fillMaxSize().padding(padding)) {
+        CenteredContentFrame(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            respectVerticalHinge = false,
+        ) {
             Column(Modifier.fillMaxSize()) {
                 PrimaryTabRow(selectedTabIndex = activeTab) {
                     Tab(
