@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.layout.CenteredContentFrame
+import com.biblelib.core.ui.R as CoreUiR
 import com.biblelib.feature.search.viewmodel.SearchViewModel
 import com.biblelib.feature.search.R
 import com.biblelib.feature.search.view.components.BibleFilterStrip
@@ -47,6 +48,8 @@ fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel,
     onExpand: (() -> Unit)? = null,
+    isAdaptiveLayout: Boolean = false,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)? = null,
 ) {
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
@@ -63,8 +66,11 @@ fun SearchScreen(
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                stringResource(R.string.search_back),
+                                imageVector = if (isAdaptiveLayout) Icons.Default.Close
+                                else Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = if (isAdaptiveLayout) {
+                                    stringResource(CoreUiR.string.adaptive_close_pane)
+                                } else stringResource(R.string.search_back),
                             )
                         }
                     },
@@ -124,17 +130,27 @@ fun SearchScreen(
                             query = query,
                             bookName = bookNames[verse.bookId] ?: verse.bookId,
                             onClick = { tapped ->
-                                navController.navigate(
-                                    Routes.reader(
-                                        bibleAbbr = selectedBibleAbbr,
-                                        bookId = tapped.bookId,
-                                        chapterId = tapped.chapterId,
-                                        verseId = tapped.verseId,
-                                        searchQuery = query,
+                                if (onOpenInReader != null) {
+                                    onOpenInReader(
+                                        selectedBibleAbbr,
+                                        tapped.bookId,
+                                        tapped.chapterId,
+                                        tapped.verseId,
+                                        query,
                                     )
-                                ) {
-                                    popUpTo(Routes.READER) { inclusive = true }
-                                    launchSingleTop = true
+                                } else {
+                                    navController.navigate(
+                                        Routes.reader(
+                                            bibleAbbr = selectedBibleAbbr,
+                                            bookId = tapped.bookId,
+                                            chapterId = tapped.chapterId,
+                                            verseId = tapped.verseId,
+                                            searchQuery = query,
+                                        )
+                                    ) {
+                                        popUpTo(Routes.READER) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
                             },
                         )

@@ -5,26 +5,15 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.biblelib.core.database.entities.BookEntity
 import com.biblelib.core.database.entities.ChapterEntity
@@ -44,6 +33,7 @@ fun ScriptureSearch(
     onAddToQueue: () -> Unit,
     onAddToQueueAndClose: () -> Unit,
     onAddToQueueAndFinish: () -> Unit,
+    isSplitPane: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     if (row.locked) {
@@ -51,42 +41,18 @@ fun ScriptureSearch(
         return
     }
 
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ScriptureField(
-                label = "Book",
-                value = row.bookLabel,
-                enabled = true,
-                isActive = row.expanded == ExpandedField.BOOK,
-                modifier = Modifier.weight(FIELD_WEIGHTS[FIELD_INDEX_BOOK]),
-                onClick = { onToggleField(ExpandedField.BOOK) },
-            )
-            ScriptureField(
-                label = "Chapter",
-                value = row.chapterLabel,
-                enabled = row.canExpandChapter,
-                isActive = row.expanded == ExpandedField.CHAPTER,
-                modifier = Modifier.weight(FIELD_WEIGHTS[FIELD_INDEX_CHAPTER]),
-                onClick = { onToggleField(ExpandedField.CHAPTER) },
-            )
-            ScriptureField(
-                label = "Verse",
-                value = row.verseLabel,
-                enabled = row.canExpandVerse,
-                isActive = row.expanded == ExpandedField.VERSE,
-                modifier = Modifier.weight(FIELD_WEIGHTS[FIELD_INDEX_VERSE]),
-                onClick = { onToggleField(ExpandedField.VERSE) },
-            )
-        }
-
+    ScriptureFields(
+        row = row,
+        isSplitPane = isSplitPane,
+        onToggleField = onToggleField,
+        modifier = modifier.padding(vertical = 6.dp),
+    ) { isPortraitLayout ->
         AnimatedVisibility(visible = row.expanded == ExpandedField.BOOK, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
             BookResultsGrid(
                 books = row.books,
                 selectedBookId = row.selectedBook?.id,
                 onSelect = onSelectBook,
+                isPortraitLayout = isPortraitLayout,
                 modifier = Modifier.padding(top = 6.dp),
             )
         }
@@ -99,6 +65,7 @@ fun ScriptureSearch(
                     chapters = row.chapters,
                     selectedChapterId = row.selectedChapter?.id,
                     onSelect = onSelectChapter,
+                    isPortraitLayout = isPortraitLayout,
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
@@ -112,6 +79,7 @@ fun ScriptureSearch(
                     verseCount = row.verses.size,
                     selectedVerseNumber = row.selectedVerseNumber,
                     onSelect = onSelectVerse,
+                    isPortraitLayout = isPortraitLayout,
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
@@ -128,45 +96,6 @@ fun ScriptureSearch(
                 onAddToQueue = onAddToQueue,
                 onAddToQueueAndClose = onAddToQueueAndClose,
                 onAddToQueueAndFinish = onAddToQueueAndFinish,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScriptureField(
-    label: String,
-    value: String,
-    enabled: Boolean,
-    isActive: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
-            readOnly = true,
-            enabled = enabled,
-            singleLine = true,
-            label = { Text(label) },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
-                disabledContainerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
-                unfocusedBorderColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                disabledBorderColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                unfocusedLabelColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledLabelColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        if (enabled) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(4.dp))
-                    .clickable(onClick = onClick)
             )
         }
     }

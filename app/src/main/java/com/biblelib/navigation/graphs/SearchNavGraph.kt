@@ -20,6 +20,8 @@ import com.biblelib.feature.search.viewmodel.SearchViewModel
 fun NavGraphBuilder.searchGraph(
     navController: NavHostController,
     onExpand: (() -> Unit)?,
+    isAdaptiveLayout: Boolean,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)?,
 ) {
     composable(Routes.SEARCH) {
         val viewModel: SearchViewModel = hiltViewModel()
@@ -27,6 +29,8 @@ fun NavGraphBuilder.searchGraph(
             navController = navController,
             viewModel = viewModel,
             onExpand = onExpand,
+            isAdaptiveLayout = isAdaptiveLayout,
+            onOpenInReader = onOpenInReader,
         )
     }
 

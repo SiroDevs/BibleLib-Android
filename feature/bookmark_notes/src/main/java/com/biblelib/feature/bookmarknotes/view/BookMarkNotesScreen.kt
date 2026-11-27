@@ -42,6 +42,8 @@ fun BookmarkNotesScreen(
     navController: NavController,
     viewModel: BookmarkNotesViewModel,
     onExpand: (() -> Unit)? = null,
+    isAdaptiveLayout: Boolean = false,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     var activeTab by remember { mutableIntStateOf(0) }
@@ -53,11 +55,15 @@ fun BookmarkNotesScreen(
     val selectedCount = if (activeTab == 0) state.selectedBookmarkKeys.size else state.selectedNoteKeys.size
 
     fun openInReader(bibleAbbr: String, bookId: String, chapterId: String) {
-        navController.navigate(
-            Routes.reader(bibleAbbr = bibleAbbr, bookId = bookId, chapterId = chapterId)
-        ) {
-            popUpTo(Routes.READER) { inclusive = true }
-            launchSingleTop = true
+        if (onOpenInReader != null) {
+            onOpenInReader(bibleAbbr, bookId, chapterId, "", "")
+        } else {
+            navController.navigate(
+                Routes.reader(bibleAbbr = bibleAbbr, bookId = bookId, chapterId = chapterId)
+            ) {
+                popUpTo(Routes.READER) { inclusive = true }
+                launchSingleTop = true
+            }
         }
     }
 
@@ -70,6 +76,7 @@ fun BookmarkNotesScreen(
                     stringResource(R.string.bookmark_notes_title)
                 },
                 showGoBack = true,
+                closeOnBack = isAdaptiveLayout,
                 onNavIconClick = {
                     if (isSelectionMode) {
                         if (activeTab == 0) viewModel.clearBookmarkSelection() else viewModel.clearNoteSelection()
@@ -82,6 +89,16 @@ fun BookmarkNotesScreen(
                     if (isSelectionMode) {
                         IconButton(onClick = { showDeleteSelectedDialog = true }) {
                             Icon(Icons.Default.Delete, stringResource(R.string.bookmark_delete_selected))
+                        }
+                    } else if (isAdaptiveLayout) {
+                        IconButton(onClick = { showClearAllDialog = true }) {
+                            Icon(
+                                Icons.Default.DeleteSweep,
+                                stringResource(
+                                    if (activeTab == 0) R.string.bookmark_clear_all_bookmarks
+                                    else R.string.bookmark_clear_all_notes,
+                                ),
+                            )
                         }
                     } else {
                         IconButton(onClick = { showOverflowMenu = true }) {

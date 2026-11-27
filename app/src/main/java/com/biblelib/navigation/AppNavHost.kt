@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,6 +29,7 @@ import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.utils.AdaptiveWidthClass
 import com.biblelib.core.ui.utils.rememberAdaptiveWindowInfo
 import com.biblelib.core.ui.viewmodel.MainViewModel
+import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import com.biblelib.navigation.graphs.mainGraph
 import com.biblelib.navigation.graphs.miscGraph
 import com.biblelib.navigation.graphs.searchGraph
@@ -73,6 +75,15 @@ fun AppNavHost(
             currentDestination?.route != Routes.SELECTION && !isSettingsRoute && !isExpanded
     val showReaderPane = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT &&
             splitReaderRoute && !isExpanded
+    val splitReaderViewModel: ReaderViewModel? = if (showReaderPane) {
+        hiltViewModel(navController.getBackStackEntry(Routes.READER))
+    } else null
+    val onOpenInReader: ((String, String, String, String, String) -> Unit)? =
+        splitReaderViewModel?.let { readerViewModel ->
+            { bibleAbbr, bookId, chapterId, verseId, searchQuery ->
+                readerViewModel.initialize("", bibleAbbr, bookId, chapterId, verseId, searchQuery)
+            }
+        }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val railWidth = if (showNavigationRail) 80.dp else 0.dp
@@ -123,6 +134,8 @@ fun AppNavHost(
                     mainViewModel = mainViewModel,
                     adaptiveWindowInfo = adaptiveWindowInfo,
                     onExpand = onExpandCurrentScreen.takeIf { showReaderPane },
+                    isAdaptiveLayout = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT,
+                    onOpenInReader = onOpenInReader,
                 )
                 settingsGraph(
                     navController = navController,
@@ -133,6 +146,8 @@ fun AppNavHost(
                 searchGraph(
                     navController = navController,
                     onExpand = onExpandCurrentScreen.takeIf { showReaderPane },
+                    isAdaptiveLayout = adaptiveWindowInfo.widthClass != AdaptiveWidthClass.COMPACT,
+                    onOpenInReader = onOpenInReader,
                 )
                 miscGraph(
                     navController = navController,

@@ -107,6 +107,7 @@ fun ScriptureOpenerScreen(
                             onAddToQueue = { viewModel.addToQueue(row.key) },
                             onAddToQueueAndClose = { viewModel.addToQueueAndClose(row.key) },
                             onAddToQueueAndFinish = { viewModel.addToQueueAndFinish(row.key) },
+                            isSplitPane = onExpand != null,
                         )
                     }
                 }

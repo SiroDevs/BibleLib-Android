@@ -34,6 +34,8 @@ fun NavGraphBuilder.mainGraph(
     mainViewModel: MainViewModel,
     adaptiveWindowInfo: AdaptiveWindowInfo,
     onExpand: (() -> Unit)?,
+    isAdaptiveLayout: Boolean,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)?,
 ) {
     composable(Routes.SELECTION) {
         val viewModel: SelectionViewModel = hiltViewModel()
@@ -114,6 +116,8 @@ fun NavGraphBuilder.mainGraph(
             navController = navController,
             viewModel = viewModel,
             onExpand = onExpand,
+            isAdaptiveLayout = isAdaptiveLayout,
+            onOpenInReader = onOpenInReader,
         )
     }
 
@@ -123,6 +127,8 @@ fun NavGraphBuilder.mainGraph(
             navController = navController,
             viewModel = viewModel,
             onExpand = onExpand,
+            isAdaptiveLayout = isAdaptiveLayout,
+            onOpenInReader = onOpenInReader,
         )
     }
 
