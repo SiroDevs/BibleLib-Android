@@ -140,6 +140,9 @@ jobs:
       contents: write
       pull-requests: read
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Download APK artifact
         uses: actions/download-artifact@v4
         with:
