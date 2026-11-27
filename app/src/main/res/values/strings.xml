@@ -1,6 +1,7 @@
 <resources>
     <string name="navigation_read">Read</string>
     <string name="navigation_search">Search</string>
+    <string name="navigation_scripture_lists">Scripture Lists</string>
     <string name="navigation_history">History</string>
     <string name="navigation_bookmarks">Saved</string>
     <string name="navigation_settings">Settings</string>

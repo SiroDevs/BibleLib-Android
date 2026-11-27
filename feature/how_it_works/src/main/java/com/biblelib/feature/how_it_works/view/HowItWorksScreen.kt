@@ -102,12 +102,13 @@ private val sections = listOf(
 @Composable
 fun HowItWorksScreen(
     navController: NavHostController,
+    showGoBack: Boolean = true,
 ) {
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "How It Works",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() }
             )
         }

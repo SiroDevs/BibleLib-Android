@@ -45,9 +45,11 @@ fun VerseList(
 
     val hasParallel = state.parallelVerses.isNotEmpty()
 
-    val itemIndexOffset = if (hasPrevChapter) 1 else 0
+    val showPrevTransition = hasPrevChapter && ChapterEdge.START !in edgePrompt.hiddenEdges
+    val showNextTransition = hasNextChapter && ChapterEdge.END !in edgePrompt.hiddenEdges
+    val itemIndexOffset = if (showPrevTransition) 1 else 0
 
-    LaunchedEffect(state.activeChapter?.id, state.verses, state.restoreVerseId) {
+    LaunchedEffect(state.activeChapter?.id, state.verses, state.restoreVerseId, itemIndexOffset) {
         val target = state.restoreVerseId
         if (target != null && state.verses.isNotEmpty()) {
             val idx = state.verses.indexOfFirst { it.verseId == target }
@@ -79,11 +81,10 @@ fun VerseList(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        if (hasPrevChapter) {
+        if (showPrevTransition) {
             item(key = PREV_CHAPTER_KEY) {
                 ChapterTransition(
                     label = prevChapterLabel,
-                    visible = ChapterEdge.START !in edgePrompt.hiddenEdges,
                     icon = Icons.Filled.KeyboardArrowUp,
                     iconAbove = true,
                 )
@@ -115,11 +116,10 @@ fun VerseList(
             )
         }
 
-        if (hasNextChapter) {
+        if (showNextTransition) {
             item(key = NEXT_CHAPTER_KEY) {
                 ChapterTransition(
                     label = nextChapterLabel,
-                    visible = ChapterEdge.END !in edgePrompt.hiddenEdges,
                     icon = Icons.Filled.KeyboardArrowDown,
                     iconAbove = false,
                 )

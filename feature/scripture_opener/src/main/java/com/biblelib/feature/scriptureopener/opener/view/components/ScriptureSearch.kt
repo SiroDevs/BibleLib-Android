@@ -96,6 +96,7 @@ fun ScriptureSearch(
                 onAddToQueue = onAddToQueue,
                 onAddToQueueAndClose = onAddToQueueAndClose,
                 onAddToQueueAndFinish = onAddToQueueAndFinish,
+                isSplitPane = isSplitPane,
             )
         }
     }

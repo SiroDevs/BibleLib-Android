@@ -13,7 +13,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -31,14 +30,12 @@ import com.biblelib.feature.reader.home.view.components.others.ChurchLibPromo
 import com.biblelib.feature.reader.home.view.components.others.rememberChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.others.ReaderOverlays
 import com.biblelib.feature.reader.home.view.components.others.rememberAutoScrollController
+import com.biblelib.feature.reader.home.view.components.verses.TrackVerseScrollPosition
+import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 // Owns reader state, lifecycle updates, and responsive screen composition.
-@OptIn(FlowPreview::class)
 @Composable
 fun ReaderScreen(
     navController: NavController,
@@ -90,21 +87,20 @@ fun ReaderScreen(
         chapterId = state.activeChapter?.id,
         onAccept = viewModel::navigateChapter,
     )
-    val itemIndexOffset = if (hasPrevChapter) 1 else 0
+    val showPrevTransition = hasPrevChapter && ChapterEdge.START !in chapterEdgePrompt.hiddenEdges
+    val itemIndexOffset = if (showPrevTransition) 1 else 0
     val canShowPersistentBookPane =
         adaptiveWindowInfo.widthClass >= AdaptiveWidthClass.LARGE &&
                 !adaptiveWindowInfo.hasVerticalSeparatingHinge &&
                 !state.isSelectionMode && !state.isScriptureModeActive
 
-    LaunchedEffect(listState, state.verses, itemIndexOffset) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .distinctUntilChanged()
-            .debounce(500)
-            .collect { index ->
-                val verse = state.verses.getOrNull(index - itemIndexOffset) ?: return@collect
-                viewModel.onVerseScrollPositionChanged(verse.verseId, verse.number)
-            }
-    }
+    TrackVerseScrollPosition(
+        listState = listState,
+        verses = state.verses,
+        itemIndexOffset = itemIndexOffset,
+        isAutoScrolling = autoScroll.isAutoScrolling,
+        onPositionChanged = viewModel::onVerseScrollPositionChanged,
+    )
 
     var churchLibPromoVisible by remember { mutableStateOf(false) }
     val promptsAllowed = !autoScroll.isAutoScrolling &&

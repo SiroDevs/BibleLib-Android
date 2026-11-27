@@ -38,6 +38,7 @@ fun BiblesScreen(
     navController: NavController,
     mainViewModel: MainViewModel,
     viewModel: BiblesViewModel,
+    showGoBack: Boolean = true,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -45,7 +46,7 @@ fun BiblesScreen(
         topBar = {
             AppTopBar(
                 title = "Manage Bibles",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() },
                 actions = {
                     IconButton(onClick = viewModel::openManagementInfo) {

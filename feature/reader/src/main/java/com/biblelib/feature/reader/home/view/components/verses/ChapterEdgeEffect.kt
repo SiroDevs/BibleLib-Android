@@ -7,8 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import com.biblelib.feature.reader.home.utils.ChapterEdge
-import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
-import com.biblelib.feature.reader.home.utils.PREV_CHAPTER_KEY
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
@@ -35,8 +33,8 @@ fun ChapterEdgeEffect(
 
 private fun LazyListState.isAtEdge(edge: ChapterEdge): Boolean = when (edge) {
     ChapterEdge.START ->
-        layoutInfo.visibleItemsInfo.firstOrNull()?.key == PREV_CHAPTER_KEY && !canScrollBackward
+        layoutInfo.visibleItemsInfo.firstOrNull()?.index == 0 && !canScrollBackward
 
     ChapterEdge.END ->
-        layoutInfo.visibleItemsInfo.lastOrNull()?.key == NEXT_CHAPTER_KEY && !canScrollForward
+        layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1 && !canScrollForward
 }

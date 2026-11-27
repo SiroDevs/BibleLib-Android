@@ -43,7 +43,7 @@ fun NavGraphBuilder.miscGraph(
         val redirectUrl = Routes.decodeRedirectUrl(encoded)
 
         val donationEntry = remember(backStackEntry) {
-            navController.getBackStackEntry(Routes.DONATION)
+            navController.previousBackStackEntry ?: navController.getBackStackEntry(Routes.DONATION)
         }
         val viewModel: DonationViewModel = hiltViewModel(donationEntry)
         val scope = rememberCoroutineScope()
