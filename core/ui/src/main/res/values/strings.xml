@@ -1,0 +1,5 @@
+<resources>
+    <string name="adaptive_open_full_screen">Open full screen</string>
+    <string name="adaptive_close_pane">Close pane</string>
+    <string name="adaptive_back">Back</string>
+</resources>

@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="reader_books_and_chapters">Books and chapters</string>
+    <string name="reader_search_books">Search books…</string>
+    <string name="reader_old_testament">Old Testament</string>
+    <string name="reader_new_testament">New Testament</string>
+    <string name="reader_chapters">Chapters</string>
+    <string name="reader_chapter_fallback">Chapter</string>
+    <string name="reader_auto_scroll_content_description">Auto scroll</string>
+    <string name="reader_stop_auto_scroll_content_description">Stop auto scroll</string>
+    <string name="reader_auto_scroll_label">Auto Scroll</string>
+    <string name="reader_stop_auto_scroll_label">Stop (%1$sx)</string>
+    <string name="reader_previous_chapter_content_description">Previous</string>
+    <string name="reader_previous_chapter_label">Prev</string>
+    <string name="reader_chapters_content_description">Chapters</string>
+    <string name="reader_chapter_label">Chapter %1$s</string>
+    <string name="reader_next_chapter_content_description">Next</string>
+    <string name="reader_next_chapter_label">Next</string>
+    <string name="reader_quick_settings_content_description">Quick Settings</string>
+    <string name="reader_options_label">Options</string>
+    <string name="reader_close_scripture_queue_content_description">Close scripture list</string>
     <string name="chapter_edge_end">You have reached the end of this chapter. Proceed to %1$s?</string>
     <string name="chapter_edge_start">You have reached the start of this chapter. Go back to %1$s?</string>
     <string name="chapter_edge_accept">ACCEPT</string>

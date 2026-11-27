@@ -51,6 +51,7 @@ fun AppearanceSettingsScreen(
     navController: NavController,
     settViewModel: SettingsViewModel,
     themeRepo: ThemeRepo,
+    showGoBack: Boolean = true,
 ) {
     var themeExpanded by remember { mutableStateOf(false) }
     val readerBackgroundId by settViewModel.readerBackgroundId.collectAsState()
@@ -59,7 +60,7 @@ fun AppearanceSettingsScreen(
         topBar = {
             AppTopBar(
                 title = "Appearance",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() },
             )
         }

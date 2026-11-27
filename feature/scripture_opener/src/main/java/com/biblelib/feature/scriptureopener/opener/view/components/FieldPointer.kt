@@ -1,8 +1,8 @@
 package com.biblelib.feature.scripture_opener.opener.view.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -25,22 +25,39 @@ internal const val FIELD_INDEX_CHAPTER = 1
 internal const val FIELD_INDEX_VERSE = 2
 
 @Composable
-fun FieldPointerArrow(fieldIndex: Int, modifier: Modifier = Modifier) {
+fun FieldPointerArrow(
+    fieldIndex: Int,
+    isPortraitLayout: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    if (isPortraitLayout && fieldIndex == FIELD_INDEX_BOOK) {
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            PointerIcon()
+        }
+        return
+    }
     Row(modifier = modifier.fillMaxWidth()) {
-        FIELD_WEIGHTS.forEachIndexed { index, weight ->
+        val weights = if (isPortraitLayout) listOf(1f, 1f) else FIELD_WEIGHTS
+        val targetIndex = if (isPortraitLayout && fieldIndex > FIELD_INDEX_BOOK) fieldIndex - 1 else fieldIndex
+        weights.forEachIndexed { index, weight ->
             Box(
                 modifier = Modifier
                     .weight(weight),
                 contentAlignment = Alignment.Center,
             ) {
-                if (index == fieldIndex) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropUp,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
+                if (index == targetIndex) {
+                    PointerIcon()
                 }
             }
         }
     }
+}
+
+@Composable
+private fun PointerIcon() {
+    Icon(
+        imageVector = Icons.Default.ArrowDropUp,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.primary,
+    )
 }

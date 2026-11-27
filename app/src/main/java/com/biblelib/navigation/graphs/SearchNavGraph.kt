@@ -16,14 +16,21 @@ import com.biblelib.feature.scripture_opener.opener.viewmodel.ScriptureOpenerVie
 import com.biblelib.feature.search.view.screen.SearchScreen
 import com.biblelib.feature.search.viewmodel.SearchViewModel
 
+// Registers Search and its related scripture destinations.
 fun NavGraphBuilder.searchGraph(
     navController: NavHostController,
+    onExpand: (() -> Unit)?,
+    isAdaptiveLayout: Boolean,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)?,
 ) {
     composable(Routes.SEARCH) {
         val viewModel: SearchViewModel = hiltViewModel()
         SearchScreen(
             navController = navController,
             viewModel = viewModel,
+            onExpand = onExpand,
+            isAdaptiveLayout = isAdaptiveLayout,
+            onOpenInReader = onOpenInReader,
         )
     }
 
@@ -42,6 +49,7 @@ fun NavGraphBuilder.searchGraph(
             viewModel = viewModel,
             bibleAbbr = bibleAbbr,
             bibleName = bibleName,
+            onExpand = onExpand,
         )
     }
 
@@ -50,6 +58,7 @@ fun NavGraphBuilder.searchGraph(
         ScriptureListScreen(
             navController = navController,
             viewModel = viewModel,
+            onExpand = onExpand,
         )
     }
 
@@ -65,6 +74,7 @@ fun NavGraphBuilder.searchGraph(
             navController = navController,
             viewModel = viewModel,
             listId = listId,
+            onExpand = onExpand,
         )
     }
 }

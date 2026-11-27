@@ -40,6 +40,7 @@ import com.biblelib.feature.settings.viewmodel.SettingsViewModel
 fun ReadingSettingsScreen(
     navController: NavController,
     settViewModel: SettingsViewModel,
+    showGoBack: Boolean = true,
 ) {
     val fontSizeSp by settViewModel.fontSizeSp.collectAsState()
     val fontFamilyId by settViewModel.readerFontFamilyId.collectAsState()
@@ -48,7 +49,7 @@ fun ReadingSettingsScreen(
         topBar = {
             AppTopBar(
                 title = "Reading",
-                showGoBack = true,
+                showGoBack = showGoBack,
                 onNavIconClick = { navController.popBackStack() },
             )
         }

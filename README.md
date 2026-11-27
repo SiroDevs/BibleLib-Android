@@ -271,17 +271,16 @@ browsing, and searching that translation work fully offline.
 
 ### 3. Release builds (optional)
 
-Release signing is configured in `app/build.gradle.kts` and reads from a `keystore/key.properties`
-file. This is only needed if you are cutting a release build — **not required for development or
-contributing**.
+Release signing is configured in `app/build.gradle.kts` and reads
+`app/keystore/key.properties`. This is only needed for release builds.
 
-Create `keystore/key.properties` at the project root:
+Create `app/keystore/key.properties`:
 
 ```properties
-storeFile=../keystore/release.jks
-storePassword=your_store_password
-keyAlias=your_key_alias
-keyPassword=your_key_password
+KEY_ALIAS=your_key_alias
+KEY_PASSWORD=your_key_password
+KEYSTORE_PASSWORD=your_store_password
+STORE_FILE=release.jks
 ```
 
 Then build:
@@ -290,6 +289,49 @@ Then build:
 ./gradlew :app:bundleRelease    # AAB for Play Store
 ./gradlew :app:assembleRelease  # APK for direct install
 ```
+
+### 4. GitHub Actions production release
+
+The workflow in `.github/workflows/release-android.yml` runs on pushes to
+`main` or manually from **Actions**. It compares `versionName` and
+`versionCode` in `app/build.gradle.kts` with the latest GitHub release. A new
+version builds a signed APK and AAB, uploads the AAB to the Play Store
+production track, then creates a GitHub Release containing the APK. Play
+review and processing still apply.
+
+Before the first run:
+
+1. Add these as repository secrets under **Settings → Secrets and variables →
+   Actions**. The four Android signing values are in the ignored local file
+   `app/keystore/signing-secrets.env`; copy them without committing that file.
+
+   | Secret | Value |
+   |---|---|
+   | `ANDROID_KEYSTORE_BASE64` | Base64 value from `signing-secrets.env` |
+   | `ANDROID_KEYSTORE_PASSWORD` | Keystore password from `signing-secrets.env` |
+   | `ANDROID_KEY_ALIAS` | Key alias from `signing-secrets.env` |
+   | `ANDROID_KEY_PASSWORD` | Private key password from `signing-secrets.env` |
+   | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Google Play service account JSON key |
+   | `PAYSTACK_SECRET_KEY` | Optional; needed for live Paystack donations |
+   | `SENTRY_AUTH_TOKEN` | Optional; enables Sentry source and mapping uploads |
+
+2. Enable the Google Play Android Developer API. Add the service account to
+   Play Console and grant it permission to release `com.biblelib` to
+   production.
+3. Ensure the `com.biblelib` app exists in Play Console and Play App Signing
+   is enabled. If this is the replacement keystore for a lost upload key,
+   request an upload key reset using `app/keystore/upload_certificate.pem` and
+   wait until the reset is active. The Android secrets above must match the
+   active upload key.
+4. Increase both `versionName` and `versionCode` for each release. The
+   workflow skips versions that are not newer than the latest GitHub release
+   and fails if the build number is not higher than the previous release.
+   If earlier Play releases were made outside GitHub Releases, make sure the
+   Gradle version and code are also higher than the current Play production
+   release before the first workflow run.
+
+The base64, keystore, and properties files stay local and are excluded by
+`.gitignore`.
 
 ---
 

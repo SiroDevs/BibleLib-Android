@@ -11,7 +11,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.biblelib.feature.reader.home.utils.ChapterEdge
 import com.biblelib.feature.reader.home.utils.NEXT_CHAPTER_KEY
@@ -21,6 +23,7 @@ import com.biblelib.feature.reader.home.view.components.others.ChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.others.ChapterTransition
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 
+// Displays chapter transitions and verses in a scrollable list.
 @Composable
 fun VerseList(
     state: ReaderUiState,
@@ -32,6 +35,9 @@ fun VerseList(
     prevChapterLabel: String = "",
     nextChapterLabel: String = "",
     edgePrompt: ChapterEdgePrompt,
+    sideBySideParallelText: Boolean = false,
+    parallelTextGutter: Dp = 24.dp,
+    modifier: Modifier = Modifier,
 ) {
     val onEdgeReached: (ChapterEdge) -> Unit = { edge ->
         edgePrompt.show(edge, if (edge == ChapterEdge.START) prevChapterLabel else nextChapterLabel)
@@ -68,6 +74,7 @@ fun VerseList(
     )
 
     LazyColumn(
+        modifier = modifier,
         state = listState,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -99,6 +106,8 @@ fun VerseList(
                 hasNote = verse.verseId in state.notedVerseIds,
                 isSelected = verse.verseId in state.selectedVerseIds,
                 isSelectionMode = state.isSelectionMode,
+                sideBySideParallelText = sideBySideParallelText,
+                parallelTextGutter = parallelTextGutter,
                 onLongPress = { viewModel.toggleVerseSelected(verse.verseId) },
                 onTap = { viewModel.toggleVerseSelected(verse.verseId) },
                 onSwipeBookmark = { viewModel.quickToggleBookmark(verse.verseId) },

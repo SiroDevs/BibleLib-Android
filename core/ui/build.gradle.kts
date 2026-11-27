@@ -13,6 +13,7 @@ dependencies {
     api(project(":core:design_system"))
 
     implementation(libs.androidx.compose.livedata)
+    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.foundation)
     implementation(libs.hilt.android)

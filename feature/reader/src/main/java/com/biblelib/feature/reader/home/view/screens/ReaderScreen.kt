@@ -1,9 +1,6 @@
 package com.biblelib.feature.reader.home.view.screens
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -12,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -26,13 +24,12 @@ import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.PrefsRepo
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.ui.components.review.ReviewPromptHost
+import com.biblelib.core.ui.utils.AdaptiveWidthClass
+import com.biblelib.core.ui.utils.AdaptiveWindowInfo
 import com.biblelib.feature.reader.R
 import com.biblelib.feature.reader.home.view.components.others.ChurchLibPromo
-import com.biblelib.feature.reader.home.view.components.others.ReaderSnackbarHost
 import com.biblelib.feature.reader.home.view.components.others.rememberChapterEdgePrompt
 import com.biblelib.feature.reader.home.view.components.others.ReaderOverlays
-import com.biblelib.feature.reader.home.view.components.actions.ReaderBottomBar
-import com.biblelib.feature.reader.home.view.components.actions.ReaderTopBar
 import com.biblelib.feature.reader.home.view.components.others.rememberAutoScrollController
 import com.biblelib.feature.reader.home.viewmodel.ReaderViewModel
 import kotlinx.coroutines.FlowPreview
@@ -40,7 +37,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+// Owns reader state, lifecycle updates, and responsive screen composition.
+@OptIn(FlowPreview::class)
 @Composable
 fun ReaderScreen(
     navController: NavController,
@@ -53,16 +51,20 @@ fun ReaderScreen(
     initialSearchQry: String = "",
     themeRepo: ThemeRepo,
     prefsRepo: PrefsRepo,
+    adaptiveWindowInfo: AdaptiveWindowInfo,
+    initializeOnEntry: Boolean = true,
 ) {
     LaunchedEffect(Unit) {
-        viewModel.initialize(
-            initialBible,
-            initialBibleAbbr,
-            initialBookId,
-            initialChapterId,
-            initialVerseId,
-            initialSearchQry,
-        )
+        if (initializeOnEntry) {
+            viewModel.initialize(
+                initialBible,
+                initialBibleAbbr,
+                initialBookId,
+                initialChapterId,
+                initialVerseId,
+                initialSearchQry,
+            )
+        }
     }
 
     val state by viewModel.uiState.collectAsState()
@@ -71,6 +73,7 @@ fun ReaderScreen(
     var showChapterSheet by remember { mutableStateOf(false) }
     var showBibleSelector by remember { mutableStateOf(false) }
     var showQuickSettings by remember { mutableStateOf(false) }
+    var showWideBookPane by rememberSaveable { mutableStateOf(true) }
 
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -88,6 +91,10 @@ fun ReaderScreen(
         onAccept = viewModel::navigateChapter,
     )
     val itemIndexOffset = if (hasPrevChapter) 1 else 0
+    val canShowPersistentBookPane =
+        adaptiveWindowInfo.widthClass >= AdaptiveWidthClass.LARGE &&
+                !adaptiveWindowInfo.hasVerticalSeparatingHinge &&
+                !state.isSelectionMode && !state.isScriptureModeActive
 
     LaunchedEffect(listState, state.verses, itemIndexOffset) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -138,63 +145,54 @@ fun ReaderScreen(
         viewModel.consumeNotesNavRequest()
     }
 
-    Scaffold(
-        snackbarHost = { ReaderSnackbarHost(snackbarHostState) },
-        topBar = {
-            ReaderTopBar(
-                navController = navController,
-                state = state,
-                viewModel = viewModel,
-                onBibleClick = { showBibleSelector = true },
-                onBookClick = { showBookDrawer = true },
-                bookSwitchEnabled = !state.isScriptureModeActive,
-                onBookSwitchBlocked = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            context.getString(R.string.scripture_mode_switch_blocked)
-                        )
-                    }
-                },
-            )
+    AdaptiveReaderLayout(
+        navController = navController,
+        viewModel = viewModel,
+        state = state,
+        adaptiveWindowInfo = adaptiveWindowInfo,
+        listState = listState,
+        snackbarHostState = snackbarHostState,
+        autoScroll = autoScroll,
+        edgePrompt = chapterEdgePrompt,
+        hasPrevChapter = hasPrevChapter,
+        hasNextChapter = hasNextChapter,
+        prevChapterLabel = prevChapterLabel,
+        nextChapterLabel = nextChapterLabel,
+        showPersistentBookPane = canShowPersistentBookPane && showWideBookPane,
+        onBibleClick = { showBibleSelector = true },
+        onBookClick = {
+            if (canShowPersistentBookPane) {
+                showWideBookPane = !showWideBookPane
+            } else {
+                showBookDrawer = true
+            }
         },
-        bottomBar = {
-            ReaderBottomBar(
-                state = state,
-                viewModel = viewModel,
-                isAutoScrolling = autoScroll.isAutoScrolling,
-                speedMultiplier = autoScroll.speedMultiplier,
-                onToggleAutoScroll = autoScroll::toggle,
-                onChapterList = { showChapterSheet = true },
-                onQuickSettings = { showQuickSettings = true },
-            )
-        },
-    ) { padding ->
-        ReaderContent(
-            modifier = Modifier.padding(padding),
-            state = state,
-            viewModel = viewModel,
-            navController = navController,
-            listState = listState,
-            hasPrevChapter = hasPrevChapter,
-            hasNextChapter = hasNextChapter,
-            prevChapterLabel = prevChapterLabel,
-            nextChapterLabel = nextChapterLabel,
-            isAutoScrolling = autoScroll.isAutoScrolling,
-            edgePrompt = chapterEdgePrompt,
-            onSpeedUp = autoScroll::speedUp,
-            onSpeedDown = autoScroll::speedDown,
-            onRetry = {
-                viewModel.initialize(
-                    initialBible,
-                    initialBibleAbbr,
-                    initialBookId,
-                    initialChapterId,
-                    initialVerseId,
-                    initialSearchQry,
+        onBookSwitchBlocked = {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.scripture_mode_switch_blocked)
                 )
-            },
-        )
-    }
+            }
+        },
+        onChapterList = {
+            if (canShowPersistentBookPane) {
+                showWideBookPane = true
+            } else {
+                showChapterSheet = true
+            }
+        },
+        onQuickSettings = { showQuickSettings = true },
+        onRetry = {
+            viewModel.initialize(
+                initialBible,
+                initialBibleAbbr,
+                initialBookId,
+                initialChapterId,
+                initialVerseId,
+                initialSearchQry,
+            )
+        },
+    )
 
     ReaderOverlays(
         state = state,

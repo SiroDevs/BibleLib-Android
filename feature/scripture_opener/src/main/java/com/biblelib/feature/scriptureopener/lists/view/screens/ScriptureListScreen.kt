@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.ui.components.action.AppTopBar
+import com.biblelib.core.ui.components.action.ExpandScreenAction
 import com.biblelib.core.ui.components.general.ConfirmDialog
 import com.biblelib.feature.scripture_opener.lists.viewmodel.ScriptureListSummary
 import com.biblelib.feature.scripture_opener.lists.viewmodel.ScriptureListsViewModel
@@ -53,6 +54,7 @@ private val listDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()
 fun ScriptureListScreen(
     navController: NavHostController,
     viewModel: ScriptureListsViewModel,
+    onExpand: (() -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
@@ -65,6 +67,7 @@ fun ScriptureListScreen(
                 title = "Scripture Lists",
                 showGoBack = true,
                 onNavIconClick = { navController.popBackStack() },
+                actions = { onExpand?.let { ExpandScreenAction(it) } },
             )
         }
     ) { padding ->

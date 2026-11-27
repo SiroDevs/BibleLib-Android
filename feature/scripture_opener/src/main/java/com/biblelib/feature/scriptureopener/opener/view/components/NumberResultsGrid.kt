@@ -27,10 +27,11 @@ fun ChapterResultsGrid(
     chapters: List<ChapterEntity>,
     selectedChapterId: String?,
     onSelect: (ChapterEntity) -> Unit,
+    isPortraitLayout: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        FieldPointerArrow(fieldIndex = FIELD_INDEX_CHAPTER)
+        FieldPointerArrow(fieldIndex = FIELD_INDEX_CHAPTER, isPortraitLayout = isPortraitLayout)
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surface,
@@ -59,10 +60,11 @@ fun VerseResultsGrid(
     verseCount: Int,
     selectedVerseNumber: Int?,
     onSelect: (Int) -> Unit,
+    isPortraitLayout: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        FieldPointerArrow(fieldIndex = FIELD_INDEX_VERSE)
+        FieldPointerArrow(fieldIndex = FIELD_INDEX_VERSE, isPortraitLayout = isPortraitLayout)
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surface,

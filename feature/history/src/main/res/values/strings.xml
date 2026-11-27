@@ -1,0 +1,8 @@
+<resources>
+    <string name="history_title">History</string>
+    <string name="history_clear">Clear</string>
+    <string name="history_reading_tab">Reading</string>
+    <string name="history_searches_tab">Searches</string>
+    <string name="history_no_reading">No reading history yet.</string>
+    <string name="history_no_searches">No searches yet.</string>
+</resources>

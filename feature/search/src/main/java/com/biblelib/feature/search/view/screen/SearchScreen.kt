@@ -28,19 +28,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.biblelib.core.common.utils.Routes
+import com.biblelib.core.ui.components.action.ExpandScreenAction
+import com.biblelib.core.ui.components.layout.CenteredContentFrame
+import com.biblelib.core.ui.R as CoreUiR
 import com.biblelib.feature.search.viewmodel.SearchViewModel
+import com.biblelib.feature.search.R
 import com.biblelib.feature.search.view.components.BibleFilterStrip
 import com.biblelib.feature.search.view.components.HistorySection
 import com.biblelib.feature.search.view.components.SearchResultItem
 
 @OptIn(ExperimentalMaterial3Api::class)
+// Searches Bible text and opens matching verses in the reader.
 @Composable
 fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel,
+    onExpand: (() -> Unit)? = null,
+    isAdaptiveLayout: Boolean = false,
+    onOpenInReader: ((String, String, String, String, String) -> Unit)? = null,
 ) {
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
@@ -57,7 +66,11 @@ fun SearchScreen(
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack, "Back",
+                                imageVector = if (isAdaptiveLayout) Icons.Default.Close
+                                else Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = if (isAdaptiveLayout) {
+                                    stringResource(CoreUiR.string.adaptive_close_pane)
+                                } else stringResource(R.string.search_back),
                             )
                         }
                     },
@@ -68,6 +81,7 @@ fun SearchScreen(
                             onClear = viewModel::clearQuery,
                         )
                     },
+                    actions = { onExpand?.let { ExpandScreenAction(it) } },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.onPrimary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -83,9 +97,10 @@ fun SearchScreen(
             }
         }
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding)) {
+        CenteredContentFrame(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            respectVerticalHinge = false,
+        ) {
             when {
                 isSearching -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -95,7 +110,7 @@ fun SearchScreen(
                     Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "No results for $query",
+                        stringResource(R.string.search_no_results, query),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
@@ -103,7 +118,7 @@ fun SearchScreen(
                 query.length >= 3 -> LazyColumn {
                     item {
                         Text(
-                            "${results.size} results",
+                            stringResource(R.string.search_results_count, results.size),
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
@@ -115,17 +130,27 @@ fun SearchScreen(
                             query = query,
                             bookName = bookNames[verse.bookId] ?: verse.bookId,
                             onClick = { tapped ->
-                                navController.navigate(
-                                    Routes.reader(
-                                        bibleAbbr = selectedBibleAbbr,
-                                        bookId = tapped.bookId,
-                                        chapterId = tapped.chapterId,
-                                        verseId = tapped.verseId,
-                                        searchQuery = query,
+                                if (onOpenInReader != null) {
+                                    onOpenInReader(
+                                        selectedBibleAbbr,
+                                        tapped.bookId,
+                                        tapped.chapterId,
+                                        tapped.verseId,
+                                        query,
                                     )
-                                ) {
-                                    popUpTo(Routes.READER) { inclusive = true }
-                                    launchSingleTop = true
+                                } else {
+                                    navController.navigate(
+                                        Routes.reader(
+                                            bibleAbbr = selectedBibleAbbr,
+                                            bookId = tapped.bookId,
+                                            chapterId = tapped.chapterId,
+                                            verseId = tapped.verseId,
+                                            searchQuery = query,
+                                        )
+                                    ) {
+                                        popUpTo(Routes.READER) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
                             },
                         )
@@ -152,7 +177,7 @@ private fun SearchField(
     TextField(
         value = query,
         onValueChange = onChange,
-        placeholder = { Text("Search scriptures...") },
+        placeholder = { Text(stringResource(R.string.search_placeholder)) },
         singleLine = true,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
@@ -163,7 +188,11 @@ private fun SearchField(
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, "Clear", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(
+                        Icons.Default.Close,
+                        stringResource(R.string.search_clear),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
                 }
             }
         },

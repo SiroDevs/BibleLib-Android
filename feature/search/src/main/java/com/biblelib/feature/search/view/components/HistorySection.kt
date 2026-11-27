@@ -18,7 +18,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.biblelib.feature.search.R
 import com.biblelib.core.database.entities.SearchEntity
 
 @Composable
@@ -34,7 +36,7 @@ fun HistorySection(
                     .fillMaxWidth()
                     .padding(48.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        "Search the scriptures...",
+                        stringResource(R.string.search_history_prompt),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
                 }
@@ -48,8 +50,10 @@ fun HistorySection(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Recent searches", style = MaterialTheme.typography.labelMedium)
-                    TextButton(onClick = onClear) { Text("Clear") }
+                    Text(stringResource(R.string.search_recent_searches), style = MaterialTheme.typography.labelMedium)
+                    TextButton(onClick = onClear) {
+                        Text(stringResource(R.string.search_clear_history))
+                    }
                 }
             }
             items(history, key = { it.id }) { item ->

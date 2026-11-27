@@ -34,13 +34,18 @@ fun SettingsGroupLabel(text: String) {
 }
 
 @Composable
+// Displays a settings row card with optional click handling.
 fun SettingsRowCard(
     onClick: (() -> Unit)? = null,
+    selected: Boolean = false,
     content: @Composable RowScope.() -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -58,13 +63,15 @@ fun SettingsRowCard(
 }
 
 @Composable
+// Displays a selectable settings destination.
 fun SettingsNavRow(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
     onClick: () -> Unit,
+    selected: Boolean = false,
 ) {
-    SettingsRowCard(onClick = onClick) {
+    SettingsRowCard(onClick = onClick, selected = selected) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)

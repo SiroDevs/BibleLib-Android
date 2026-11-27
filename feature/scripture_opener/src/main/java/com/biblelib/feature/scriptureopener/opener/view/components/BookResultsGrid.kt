@@ -44,6 +44,7 @@ fun BookResultsGrid(
     books: List<BookEntity>,
     selectedBookId: String?,
     onSelect: (BookEntity) -> Unit,
+    isPortraitLayout: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val ordered = remember(books) { books.sortedBy { it.sortOrder } }
@@ -59,7 +60,7 @@ fun BookResultsGrid(
     val gridHeight: Dp = if (landscape) LANDSCAPE_GRID_HEIGHT else PORTRAIT_GRID_HEIGHT
 
     Column(modifier = modifier.fillMaxWidth()) {
-        FieldPointerArrow(fieldIndex = FIELD_INDEX_BOOK)
+        FieldPointerArrow(fieldIndex = FIELD_INDEX_BOOK, isPortraitLayout = isPortraitLayout)
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
