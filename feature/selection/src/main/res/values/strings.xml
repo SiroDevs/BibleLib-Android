@@ -1,0 +1,4 @@
+<resources>
+    <string name="selection_continue">Continue</string>
+    <string name="selection_cancel">Cancel selection</string>
+</resources>

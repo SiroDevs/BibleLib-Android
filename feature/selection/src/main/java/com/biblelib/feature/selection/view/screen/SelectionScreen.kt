@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness6
@@ -24,6 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.biblelib.core.common.entity.UiState
@@ -31,9 +35,11 @@ import com.biblelib.core.common.utils.Routes
 import com.biblelib.core.data.repos.ThemeRepo
 import com.biblelib.core.design_system.theme.ThemeSelectorDialog
 import com.biblelib.core.ui.components.action.AppTopBar
-import com.biblelib.feature.selection.view.components.ProceedBar
+import com.biblelib.feature.selection.view.components.SelectionContinueFab
 import com.biblelib.feature.selection.viewmodel.SelectionViewModel
+import com.biblelib.feature.selection.R
 
+// Handles Bible selection and its proceed or cancel actions.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectionScreen(
@@ -124,29 +130,30 @@ fun SelectionScreen(
                 )
             }
         },
-        bottomBar = {
-            if (uiState is UiState.Loaded) {
-                ProceedBar(
-                    canProceed = canProceed,
-                    onProceed = {
-                        if (viewModel.isFirstInstall) {
-                            viewModel.saveSelectionAndDownload()
-                        } else {
-                            viewModel.saveSelectionInBackground()
-                        }
-                    },
-                )
-            }
-        },
         floatingActionButton = {
-            if (!viewModel.isFirstInstall && uiState is UiState.Loaded) {
-                FloatingActionButton(
-                    onClick = {
-                        viewModel.cancelReselection()
-                        navController.popBackStack()
+            if (uiState is UiState.Loaded) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (!viewModel.isFirstInstall) {
+                        FloatingActionButton(
+                            onClick = {
+                                viewModel.cancelReselection()
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Icon(Icons.Default.Close, stringResource(R.string.selection_cancel))
+                        }
                     }
-                ) {
-                    Icon(Icons.Default.Close, "Cancel selection")
+
+                    SelectionContinueFab(
+                        canProceed = canProceed,
+                        onProceed = {
+                            if (viewModel.isFirstInstall) {
+                                viewModel.saveSelectionAndDownload()
+                            } else {
+                                viewModel.saveSelectionInBackground()
+                            }
+                        },
+                    )
                 }
             }
         }
